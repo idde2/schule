@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Log</title>
+
+    <style>
+        :root {
+            --bg: #363636;
+            --text: #ffffff;
+            --card-bg: #444;
+            --sidebar-bg: #222;
+            --row-bg: #444;
+        }
+
+        body.light {
+            --bg: #f5f5f5;
+            --text: #000000;
+            --card-bg: #ffffff;
+            --sidebar-bg: #e0e0e0;
+            --row-bg: #f0f0f0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            text-align: center;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        .card {
+            background: var(--row-bg);
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            text-align: left;
+        }
+
+        .action {
+            font-weight: bold;
+            color: #00b894;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100%;
+            background-color: var(--sidebar-bg);
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.4);
+            transform: translateX(-240px);
+            transition: transform 0.3s ease, background 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar a, .sidebar button {
+            display: block;
+            padding: 15px 20px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 22px;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .sidebar a:hover, .sidebar button:hover {
+            background-color: var(--row-bg);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .toggle-btn {
+            position: fixed;
+            top: 10px;
+            left: 20px;
+            background-color: var(--bg);
+            color: var(--text);
+            border: none;
+            padding: 6px 8px;
+            font-size: 22px;
+            cursor: pointer;
+            border-radius: 6px;
+            z-index: 1100;
+        }
+
+        .toggle-btn2 {
+            position: fixed;
+            bottom: 30px;
+            left: 25px;
+            background-color: #222;
+            color: white;
+            border: none;
+            padding: 6px 8px;
+            font-size: 22px;
+            cursor: pointer;
+            border-radius: 6px;
+            z-index: 1100;
+        }
+
+        #themeToggle {
+            font-size: 26px;
+            transition: transform 0.4s ease, opacity 0.3s ease;
+        }
+
+        #themeToggle.rotate {
+            transform: rotate(180deg);
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Admin Log</h1>
+
+<div class="card-list">
+    {% for ip, name, wert, action, ts in logs %}
+    <div class="card">
+        <div><strong>{{ ts }}</strong></div>
+        <div>IP: {{ ip }}</div>
+        <div>Name: {{ name }}</div>
+        <div>Wert: {{ wert }}</div>
+        <div class="action">Aktion: {{ action }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div id="sidebar" class="sidebar">
+    <p></p>
+    <a href="/">Live‑Daten</a>
+    <a href="/tabelle">Tabelle</a>
+    <a href="/rang">Rang</a>
+    <a href="/eingabe">Eingabe</a>
+    <a href="/admin">Admin</a>
+    <button class="toggle-btn2" id="themeToggle">🌙</button>
+</div>
+
+<button id="toggleBtn" class="toggle-btn">☰</button>
+
+<script>
+const sidebar = document.getElementById("sidebar");
+document.getElementById("toggleBtn").onclick = () =>
+    sidebar.classList.toggle("open");
+
+function applyTheme(theme) {
+    document.body.classList.toggle("light", theme === "light");
+    document.getElementById("themeToggle").textContent =
+        theme === "light" ? "☀️" : "🌙";
+}
+
+let savedTheme = localStorage.getItem("theme") ||
+    (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+
+applyTheme(savedTheme);
+
+document.getElementById("themeToggle").onclick = () => {
+    const btn = document.getElementById("themeToggle");
+    btn.classList.add("rotate");
+    setTimeout(() => btn.classList.remove("rotate"), 400);
+    const newTheme = document.body.classList.contains("light") ? "dark" : "light";
+    applyTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+};
+
+let touchStartX = 0;
+
+document.addEventListener("touchstart", (e) => {
+    touchStartX = e.touches[0].clientX;
+});
+
+document.addEventListener("touchend", (e) => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (diff > 80) sidebar.classList.add("open");
+    if (diff < -80) sidebar.classList.remove("open");
+});
+</script>
+
+</body>
+</html>

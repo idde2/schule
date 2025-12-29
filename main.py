@@ -1,0 +1,371 @@
+from flask import Flask, render_template, request, redirect, url_for, session, make_response, jsonify
+import csv
+import io
+import openpyxl
+from datetime import datetime
+
+import threading
+from flask_socketio import SocketIO, emit
+import time
+import mysql.connector
+
+app = Flask(__name__)
+socketio = SocketIO(app)
+app.secret_key = "supersecretkey2025"
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/tabelle")
+def tabelle():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC")
+    daten = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template("tabelle.html", daten=daten )
+
+@app.route("/rang")
+def rang():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT name, wert FROM daten ORDER BY wert DESC")
+    daten = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template("rang.html", daten=daten)
+
+
+@app.route("/eingabe", methods=["GET", "POST"])
+def eingabe():
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        wert = float(request.form["wert"])
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM daten WHERE name = %s", (name,))
+        (count,) = cursor.fetchone()
+        if count > 0:
+            conn.close()
+            return jsonify({"success": False, "error": "name_exists"})
+
+        cursor.execute("INSERT INTO daten (name, wert) VALUES (%s, %s)", (name, wert))
+        conn.commit()
+        new_id = cursor.lastrowid
+
+        user_ip = request.remote_addr
+        cursor.execute(
+            "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
+            (user_ip, name, wert, "eingabe")
+        )
+        conn.commit()
+
+        cursor.execute("SELECT name, wert FROM daten ORDER BY wert DESC")
+        rang = cursor.fetchall()
+
+        conn.close()
+
+        socketio.emit("update", {
+            "id": new_id,
+            "name": name,
+            "wert": wert
+        })
+
+        socketio.emit("rang_update", {
+            "daten": [{"name": n, "wert": w} for n, w in rang]
+        })
+
+        return jsonify({"success": True})
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM daten")
+    namen = [row[0] for row in cursor.fetchall()]
+    conn.close()
+
+    return render_template("eingabe.html", namen=namen)
+
+
+
+
+@app.route("/admin")
+def admin():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC")
+    daten = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template("admin.html", daten=daten)
+
+@app.route("/delete/<int:id>")
+def delete(id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM daten WHERE id = %s", (id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return redirect("/admin")
+
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
+def edit(id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        wert = request.form.get("wert")
+
+        cursor.execute(
+            "UPDATE daten SET name=%s, wert=%s WHERE id=%s",
+            (name, wert, id)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return redirect("/admin")
+
+    cursor.execute("SELECT id, name, wert FROM daten WHERE id=%s", (id,))
+    eintrag = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return render_template("edit.html", eintrag=eintrag)
+
+@app.route("/delete_all")
+def delete_all():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM verlauf")
+    cursor.execute("DELETE FROM daten")
+    cursor.execute("ALTER TABLE daten AUTO_INCREMENT = 1")
+    cursor.execute("ALTER TABLE verlauf AUTO_INCREMENT = 1")
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    socketio.emit("rang_update", {"daten": []})
+    socketio.emit("tabelle_update", {"daten": []})
+    socketio.emit("admin_update", {"daten": []})
+
+    return redirect("/admin")
+
+
+@app.before_request
+def protect_admin():
+    if request.path.startswith("/admin"):
+        if session.get("admin_ok") != True:
+            return redirect("/pin")
+
+@app.route("/pin", methods=["GET", "POST"])
+def pin():
+    if request.method == "POST":
+        if request.form.get("pin") == "2026":
+            session["admin_ok"] = True
+            return redirect("/admin")
+        return render_template("pin.html", error=True)
+    return render_template("pin.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/admin")
+
+
+@app.route("/export/csv")
+def export_csv():
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="py",
+        password="py!!",
+        database="schule"
+    )
+    c = conn.cursor()
+    c.execute("SELECT id, name, wert FROM daten")
+    rows = c.fetchall()
+    conn.close()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Name", "Wert"])
+    writer.writerows(rows)
+
+    filename = f"export_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv"
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    response.headers["Content-Type"] = "text/csv"
+    return response
+
+
+@app.route("/export/excel")
+def export_excel():
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="py",
+        password="py!!",
+        database="schule"
+    )
+    c = conn.cursor()
+    c.execute("SELECT id, name, wert FROM daten")
+    rows = c.fetchall()
+    conn.close()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Daten"
+
+    ws.append(["ID", "Name", "Wert"])
+    for row in rows:
+        ws.append(row)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"export_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return response
+
+@app.route("/profile")
+def profile_list():
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="py",
+        password="py!!",
+        database="schule"
+    )
+    c = conn.cursor()
+    c.execute("SELECT id, name, wert FROM daten ORDER BY name ASC")
+    daten = c.fetchall()
+    conn.close()
+
+    return render_template("profile_list.html", daten=daten)
+
+@app.route("/profil/<int:teilnehmer_id>")
+def profil(teilnehmer_id):
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="py",
+        password="py!!",
+        database="schule"
+    )
+    c = conn.cursor()
+
+    c.execute("SELECT id, name, wert FROM daten WHERE id = %s", (teilnehmer_id,))
+    teilnehmer = c.fetchone()
+
+    if not teilnehmer:
+        conn.close()
+        return "Teilnehmer nicht gefunden", 404
+
+    c.execute("""
+        SELECT wert, timestamp 
+        FROM verlauf 
+        WHERE teilnehmer_id = %s 
+        ORDER BY timestamp DESC
+    """, (teilnehmer_id,))
+    verlauf = c.fetchall()
+
+    conn.close()
+
+    return render_template("profil.html", teilnehmer=teilnehmer, verlauf=verlauf)
+
+@app.route("/admin/log")
+def admin_log():
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="py",
+        password="py!!",
+        database="schule"
+    )
+    c = conn.cursor()
+    c.execute("SELECT ip, name, wert, action, timestamp FROM log ORDER BY timestamp DESC")
+    logs = c.fetchall()
+    conn.close()
+
+    return render_template("admin_log.html", logs=logs)
+
+
+
+
+
+
+
+
+def get_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="py",
+        password="py!!",
+        database="schule"
+    )
+
+def background_updater():
+    while True:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC LIMIT 1")
+        latest = cursor.fetchone()
+
+        cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC")
+        alle = cursor.fetchall()
+
+        cursor.execute("SELECT name, wert FROM daten ORDER BY wert DESC")
+        rang = cursor.fetchall()
+
+        cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC")
+        admin = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        if latest:
+            id, name, wert = latest
+        else:
+            id, name, wert = None, None, None
+
+        socketio.emit("update", {
+            "id": id,
+            "name": name,
+            "wert": wert
+        })
+
+        socketio.emit("tabelle_update", {
+            "daten": [{"id": r[0], "name": r[1], "wert": r[2]} for r in alle]
+        })
+
+        socketio.emit("rang_update", {
+            "daten": [{"name": r[0], "wert": r[1]} for r in rang]
+        })
+
+        socketio.emit("admin_update", {
+            "daten": [{"id": r[0], "name": r[1], "wert": r[2]} for r in admin]
+        })
+
+        socketio.sleep(1)
+
+
+
+
+
+if __name__ == "__main__":
+    socketio.start_background_task(background_updater)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Eintrag bearbeiten</title>
+    <style>
+        body {
+            background-color: #363636;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .form-box {
+            margin: 80px auto;
+            width: 400px;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #00b894;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #019870;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-box">
+    <h1>Eintrag bearbeiten</h1>
+
+    <form method="POST">
+        <input type="text" name="name" value="{{ eintrag[1] }}" required>
+        <input type="number" step="0.01" name="wert" value="{{ eintrag[2] }}" required>
+        <button type="submit">Speichern</button>
+    </form>
+
+    <p><a href="/admin" style="color:#74b9ff;">Zurück</a></p>
+</div>
+
+</body>
+</html>
