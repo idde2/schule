@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+
+    <style>
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            text-align: center;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .card {
+            background: var(--row-bg);
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+        a {
+            color: #00b894;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Teilnehmer‑Profile</h1>
+
+<div class="card-list">
+    {% for id, name, wert in daten %}
+    <a href="/profil/{{ id }}">
+        <div class="card">
+            <strong>{{ name }}</strong><br>
+            Wert: {{ wert }}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+</body>
+</html>

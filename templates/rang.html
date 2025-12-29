@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rangliste</title>
+
+    <style>
+        :root {
+            --bg: #363636;
+            --text: #ffffff;
+            --row-bg: #444;
+            --header-bg: #505050;
+        }
+
+        body.light {
+            --bg: #f5f5f5;
+            --text: #000000;
+            --row-bg: #ffffff;
+            --header-bg: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+        }
+
+        table {
+            margin: 40px auto;
+            border-collapse: collapse;
+            width: 70%;
+            font-size: 24px;
+        }
+
+        th, td {
+            border: 1px solid #555;
+            padding: 12px;
+        }
+
+        th {
+            background-color: var(--header-bg);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--row-bg);
+        }
+
+        .top1 { background-color: #ffd700 !important; }
+        .top2 { background-color: #c0c0c0 !important; }
+        .top3 { background-color: #cd7f32 !important; }
+
+        .glow-up { animation: glowUp 1s ease-out; }
+        .glow-down { animation: glowDown 1s ease-out; }
+
+        @keyframes glowUp {
+            0% { background-color: #2ecc71; }
+            100% { background-color: inherit; }
+        }
+
+        @keyframes glowDown {
+            0% { background-color: #e74c3c; }
+            100% { background-color: inherit; }
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100%;
+            background-color: #222;
+            padding-top: 20px;
+            transform: translateX(-240px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar a, .sidebar button {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 22px;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .sidebar a:hover, .sidebar button:hover {
+            background-color: var(--row-bg);
+        }
+
+        .toggle-btn {
+            position: fixed;
+            top: 10px;
+            left: 20px;
+            background-color: var(--bg);
+            color: var(--text);
+            border: none;
+            padding: 4px 4px;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            z-index: 1100;
+        }
+
+        .toggle-btn2 {
+            position: fixed;
+            bottom: 35px;
+            left: 20px;
+            background-color: #222;
+            color: white;
+            border: none;
+            padding: 4px 4px;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            z-index: 1100;
+        }
+
+        #themeToggle {
+            font-size: 26px;
+            transition: transform 0.4s ease, opacity 0.3s ease;
+        }
+
+        #themeToggle.rotate {
+            transform: rotate(180deg);
+            opacity: 0.6;
+        }
+
+        .card-list {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            table {
+                display: none;
+            }
+
+            .card-list {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                padding: 20px;
+                width: 100%;
+                max-width: 600px;
+                margin: auto;
+            }
+
+            .card {
+                background: var(--row-bg);
+                padding: 20px;
+                border-radius: 12px;
+                font-size: 26px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="sidebar" class="sidebar">
+    <p></p>
+    <a href="/">Live‑Daten</a>
+    <a href="/tabelle">Tabelle</a>
+    <a href="/rang" style="font-weight: bold;">Rang</a>
+    <a href="/eingabe">Eingabe</a>
+    <a href="/admin">Admin</a>
+    <button class="toggle-btn2" id="themeToggle">🌙</button>
+</div>
+
+<button id="toggleBtn" class="toggle-btn">☰</button>
+
+<h1 style="font-size: 50px">Rangliste</h1>
+
+<div id="mobileCards" class="card-list"></div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Wert</th>
+        </tr>
+    </thead>
+    <tbody id="tbody">
+        {% for name, wert in daten %}
+        <tr class="
+            {% if loop.index == 1 %}top1{% endif %}
+            {% if loop.index == 2 %}top2{% endif %}
+            {% if loop.index == 3 %}top3{% endif %}
+        ">
+            <td>{{ name }}</td>
+            <td>{{ wert }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+document.getElementById("toggleBtn").onclick = () =>
+    document.getElementById("sidebar").classList.toggle("open");
+
+function applyTheme(theme) {
+    document.body.classList.toggle("light", theme === "light");
+    document.getElementById("themeToggle").textContent =
+        theme === "light" ? "☀️" : "🌙";
+}
+
+let savedTheme = localStorage.getItem("theme") ||
+    (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+
+applyTheme(savedTheme);
+
+document.getElementById("themeToggle").onclick = () => {
+    const btn = document.getElementById("themeToggle");
+    btn.classList.add("rotate");
+    setTimeout(() => btn.classList.remove("rotate"), 400);
+    const newTheme = document.body.classList.contains("light") ? "dark" : "light";
+    applyTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+};
+
+function konfetti() {
+    for (let i = 0; i < 80; i++) {
+        const d = document.createElement("div");
+        d.style.position = "fixed";
+        d.style.width = "8px";
+        d.style.height = "8px";
+        d.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
+        d.style.left = Math.random()*100 + "vw";
+        d.style.top = "-20px";
+        d.style.opacity = 1;
+        d.style.transition = "transform 1.5s ease-out, opacity 1.5s ease-out";
+        document.body.appendChild(d);
+        setTimeout(() => {
+            d.style.transform = `translateY(${100 + Math.random()*50}vh) rotate(${Math.random()*360}deg)`;
+            d.style.opacity = 0;
+        }, 10);
+        setTimeout(() => d.remove(), 1600);
+    }
+}
+
+const socket = io();
+let lastFirst = "";
+
+socket.on("rang_update", (data) => {
+    const tbody = document.getElementById("tbody");
+    const mobile = document.getElementById("mobileCards");
+
+    mobile.innerHTML = "";
+    data.daten.forEach(r => {
+        mobile.innerHTML += `
+            <div class="card">
+                <strong>${r.name}</strong><br>
+                ${r.wert}
+            </div>
+        `;
+    });
+
+    let rows = Array.from(tbody.querySelectorAll("tr"));
+    const names = rows.map(r => r.children[0].textContent);
+
+    data.daten.forEach(row => {
+        if (!names.includes(row.name)) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${row.name}</td><td>${row.wert}</td>`;
+            tbody.appendChild(tr);
+        }
+    });
+
+    rows = Array.from(tbody.querySelectorAll("tr"));
+    const oldPos = new Map();
+    rows.forEach(tr => oldPos.set(tr.children[0].textContent, tr.getBoundingClientRect()));
+
+    data.daten.forEach(row => {
+        const tr = rows.find(r => r.children[0].textContent === row.name);
+        if (tr) {
+            const old = Number(tr.children[1].textContent);
+            const neu = Number(row.wert);
+            if (neu > old) tr.classList.add("glow-up");
+            if (neu < old) tr.classList.add("glow-down");
+            tr.children[1].textContent = neu;
+            setTimeout(() => tr.classList.remove("glow-up", "glow-down"), 1000);
+        }
+    });
+
+    const sorted = [...data.daten].sort((a,b)=>b.wert - a.wert);
+    const newOrder = sorted.map(r => rows.find(tr => tr.children[0].textContent === r.name));
+
+    if (sorted[0].name !== lastFirst) {
+        konfetti();
+        lastFirst = sorted[0].name;
+    }
+
+    newOrder.forEach((tr, i) => {
+        tr.classList.remove("top1","top2","top3");
+        if (i===0) tr.classList.add("top1");
+        if (i===1) tr.classList.add("top2");
+        if (i===2) tr.classList.add("top3");
+    });
+
+    newOrder.forEach(tr => tbody.appendChild(tr));
+
+    newOrder.forEach(tr => {
+        const name = tr.children[0].textContent;
+        const old = oldPos.get(name);
+        const neu = tr.getBoundingClientRect();
+        const dy = old.top - neu.top;
+        if (Math.abs(dy) > 3) {
+            tr.style.transition = "none";
+            tr.style.transform = `translateY(${dy}px)`;
+            requestAnimationFrame(() => {
+                tr.style.transition = "transform 0.6s cubic-bezier(.34,1.56,.64,1)";
+                tr.style.transform = "translateY(0)";
+            });
+        }
+    });
+});
+
+let touchStartX = 0;
+
+document.addEventListener("touchstart", (e) => {
+    touchStartX = e.touches[0].clientX;
+});
+
+document.addEventListener("touchend", (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchEndX - touchStartX;
+    if (diff > 80) sidebar.classList.add("open");
+    if (diff < -80) sidebar.classList.remove("open");
+});
+</script>
+
+</body>
+</html>
