@@ -3,6 +3,8 @@ import csv
 import io
 import openpyxl
 from datetime import datetime
+from collections import deque
+import itertools
 
 import threading
 from flask_socketio import SocketIO, emit
@@ -12,6 +14,7 @@ import mysql.connector
 app = Flask(__name__)
 socketio = SocketIO(app)
 app.secret_key = "supersecretkey2025"
+app.config['SECRET_KEY'] = 'secret'
 
 @app.route("/")
 def index():
@@ -302,6 +305,111 @@ def admin_log():
 
     return render_template("admin_log.html", logs=logs)
 
+
+
+
+
+
+
+
+@app.route('/turnier')
+def turnier():
+    return render_template("turnier.html")
+players = []
+matches = []
+cooldown_queue = deque()
+max_parallel_games = 2
+match_id_counter = itertools.count(1)
+
+def serialize_state():
+    return {
+        'players': players,
+        'matches': matches,
+        'max_parallel_games': max_parallel_games
+    }
+
+def get_ready_players():
+    return [p for p in players if p['status'] == 'ready']
+
+def get_active_matches():
+    return [m for m in matches if m['status'] == 'playing']
+
+def schedule_matches():
+    ready = get_ready_players()
+    active = get_active_matches()
+    slots = max_parallel_games - len(active)
+    new_matches = []
+    while len(ready) >= 2 and slots > 0:
+        p1 = ready.pop(0)
+        p2 = ready.pop(0)
+        p1['status'] = 'playing'
+        p2['status'] = 'playing'
+        m = {
+            'id': next(match_id_counter),
+            'p1': p1['id'],
+            'p2': p2['id'],
+            'winner': None,
+            'round': 1,
+            'status': 'playing'
+        }
+        matches.append(m)
+        new_matches.append(m)
+        slots -= 1
+    return new_matches
+
+@app.route('/turnier/init', methods=['POST'])
+def turnier_init():
+    global players, matches, cooldown_queue, max_parallel_games, match_id_counter
+    data = request.json
+    num_players = int(data['num_players'])
+    max_parallel_games = int(data['max_parallel_games'])
+    players = [{'id': i + 1, 'name': f'Spieler {i + 1}', 'status': 'ready'} for i in range(num_players)]
+    matches = []
+    cooldown_queue = deque()
+    match_id_counter = itertools.count(1)
+    socketio.emit('state_update', serialize_state(), broadcast=True)
+    return jsonify({'status': 'ok'})
+
+@app.route('/turnier/start', methods=['POST'])
+def turnier_start():
+    schedule_matches()
+    socketio.emit('state_update', serialize_state(), broadcast=True)
+    return jsonify({'status': 'ok'})
+
+@app.route('/turnier/result', methods=['POST'])
+def turnier_result():
+    data = request.json
+    match_id = data['match_id']
+    winner_id = data['winner_id']
+    for m in matches:
+        if m['id'] == match_id and m['status'] == 'playing':
+            m['winner'] = winner_id
+            m['status'] = 'finished'
+            loser_id = m['p1'] if m['p2'] == winner_id else m['p2']
+            for p in players:
+                if p['id'] == winner_id:
+                    p['status'] = 'cooldown'
+                    cooldown_queue.append(p['id'])
+                if p['id'] == loser_id:
+                    p['status'] = 'out'
+            break
+    socketio.emit('state_update', serialize_state(), broadcast=True)
+    return jsonify({'status': 'ok'})
+
+@app.route('/turnier/cooldown', methods=['POST'])
+def turnier_cooldown():
+    if cooldown_queue:
+        pid = cooldown_queue.popleft()
+        for p in players:
+            if p['id'] == pid:
+                p['status'] = 'ready'
+                break
+    socketio.emit('state_update', serialize_state(), broadcast=True)
+    return jsonify({'status': 'ok'})
+
+@socketio.on('request_state')
+def handle_request_state():
+    emit('state_update', serialize_state())
 
 
 

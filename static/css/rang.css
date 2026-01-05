@@ -1,0 +1,138 @@
+
+
+table {
+    margin: 40px auto;
+    border-collapse: collapse;
+    width: 70%;
+    font-size: 24px;
+}
+
+th, td {
+    border: 1px solid #555;
+    padding: 12px;
+}
+
+th {
+    background-color: var(--header-bg);
+}
+
+tr:nth-child(even) {
+    background-color: var(--row-bg);
+}
+
+.top1 { background-color: #ffd700 !important; }
+.top2 { background-color: #c0c0c0 !important; }
+.top3 { background-color: #cd7f32 !important; }
+
+.glow-up { animation: glowUp 1s ease-out; }
+.glow-down { animation: glowDown 1s ease-out; }
+
+@keyframes glowUp {
+    0% { background-color: #2ecc71; }
+    100% { background-color: inherit; }
+}
+
+@keyframes glowDown {
+    0% { background-color: #e74c3c; }
+    100% { background-color: inherit; }
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100%;
+    background-color: #222;
+    padding-top: 20px;
+    transform: translateX(-240px);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.sidebar.open {
+    transform: translateX(0);
+}
+
+.sidebar a, .sidebar button {
+    display: block;
+    padding: 15px 20px;
+    color: white;
+    text-decoration: none;
+    font-size: 22px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sidebar a:hover, .sidebar button:hover {
+    background-color: var(--row-bg);
+}
+
+.toggle-btn {
+    position: fixed;
+    top: 10px;
+    left: 20px;
+    background-color: var(--bg);
+    color: var(--text);
+    border: none;
+    padding: 4px 4px;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 6px;
+    z-index: 1100;
+}
+
+.toggle-btn2 {
+    position: fixed;
+    bottom: 35px;
+    left: 20px;
+    background-color: #222;
+    color: white;
+    border: none;
+    padding: 4px 4px;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    z-index: 1100;
+}
+
+#themeToggle {
+    font-size: 26px;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+}
+
+#themeToggle.rotate {
+    transform: rotate(180deg);
+    opacity: 0.6;
+}
+
+.card-list {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    table {
+        display: none;
+    }
+
+    .card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px;
+        width: 100%;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .card {
+        background: var(--row-bg);
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 26px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        text-align: center;
+    }
+}
