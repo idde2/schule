@@ -11,6 +11,15 @@
 
 <h1>Admin Log</h1>
 
+<select id="filter" class="suche">
+    <option value="">Alle</option>
+    <option value="eingabe">Eingaben</option>
+    <option value="delete">Löschungen</option>
+    <option value="edit">Bearbeitungen</option>
+</select>
+
+
+
 <div class="card-list">
     {% for ip, name, wert, action, ts in logs %}
     <div class="card">
@@ -34,6 +43,11 @@
 </div>
 
 <button id="toggleBtn" class="toggle-btn">☰</button>
+
+<a class="I" href="/info">
+    <img class="I" src="{{ url_for('static', filename='images/I.png') }}" width="24" height="24">
+</a>
+
 
 <script>
 const sidebar = document.getElementById("sidebar");
@@ -71,6 +85,16 @@ document.addEventListener("touchend", (e) => {
     if (diff > 80) sidebar.classList.add("open");
     if (diff < -80) sidebar.classList.remove("open");
 });
+
+const f = document.getElementById("filter");
+f.onchange = () => {
+    const v = f.value.toLowerCase();
+    document.querySelectorAll(".card").forEach(c => {
+        const t = c.textContent.toLowerCase();
+        c.style.display = v === "" || t.includes(v) ? "" : "none";
+    });
+};
+
 </script>
 
 </body>

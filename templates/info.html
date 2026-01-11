@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rangliste</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/info.css">
+</head>
+
+<body>
+
+<div id="sidebar" class="sidebar">
+    <p></p>
+    <a href="/">Live‑Daten</a>
+    <a href="/tabelle">Tabelle</a>
+    <a href="/rang" >Rang</a>
+    <a href="/eingabe">Eingabe</a>
+    <a href="/admin">Admin</a>
+</div>
+
+<button id="toggleBtn" class="toggle-btn">☰</button>
+
+<h1 style="font-size: 50px">Info</h1>
+
+<div id="mobileCards" class="card-list"></div>
+
+<div class="text-box">
+    <p class="text">Dieses Projekt gehört Eddi Mickan.</p>
+    <p class="text">Alle Eigentumsrechte liegen bei Eddi Mickan.</p>
+    <p class="text">Bei Anliegen können Sie mich unter eddi.mickan@gmail.com kontaktieren</p>
+</div>
+
+<div class="text-box2">
+    <p class="text">© 2026 Eddi Mickan. Alle Rechte vorbehalten.</p>
+    <p class="text">Alle Icons, Bilder, Sounds und Animationen wurden von mir erstellt und dürfen ohne Genehmigung nicht weiterverwendet werden.</p>
+</div>
+
+
+
+<script>
+let touchStartX = 0;
+
+document.addEventListener("touchstart", (e) => {
+    touchStartX = e.touches[0].clientX;
+});
+
+document.addEventListener("touchend", (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchEndX - touchStartX;
+    if (diff > 80) sidebar.classList.add("open");
+    if (diff < -80) sidebar.classList.remove("open");
+});
+
+document.getElementById("toggleBtn").onclick = () =>
+    document.getElementById("sidebar").classList.toggle("open");
+
+</script>
+
+</body>
+</html>

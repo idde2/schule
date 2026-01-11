@@ -10,6 +10,8 @@
 
 <body>
 
+<div id="reconnect" style="position:fixed;top:0;left:0;width:100%;padding:12px;background:#c0392b;color:white;text-align:center;font-size:20px;display:none;z-index:5000;">Verbindung wird wiederhergestellt…</div>
+
 <div id="liveCards" class="card-list"></div>
 
 <div id="sidebar" class="sidebar">
@@ -21,6 +23,10 @@
     <a href="/admin">Admin</a>
     <button class="toggle-btn2" id="themeToggle">🌙</button>
 </div>
+
+<a class="I" href="/info">
+    <img class="I" src="{{ url_for('static', filename='images/I.png') }}" width="24" height="24">
+</a>
 
 <button id="toggleBtn" class="toggle-btn">☰</button>
 
@@ -40,17 +46,32 @@ document.getElementById("toggleBtn").onclick = () =>
 
 const socket = io();
 
-// Debug: zeigt in der Konsole, ob verbunden
+socket.on("disconnect", () => {
+    document.getElementById("reconnect").style.display = "block";
+});
+
 socket.on("connect", () => {
-    console.log("Socket connected, id:", socket.id);
+    document.getElementById("reconnect").style.display = "none";
 });
 
 socket.on("update", (data) => {
-    console.log("update event:", data);
+    const idEl = document.getElementById("id");
+    const nameEl = document.getElementById("name");
+    const wertEl = document.getElementById("wert");
 
-    document.getElementById("id").textContent = data.id ?? "–";
-    document.getElementById("name").textContent = data.name ?? "–";
-    document.getElementById("wert").textContent = data.wert ?? "–";
+    idEl.textContent = data.id ?? "–";
+    nameEl.textContent = data.name ?? "–";
+
+    const old = parseFloat(wertEl.textContent) || 0;
+    const target = data.wert ?? 0;
+    const duration = 300;
+    const start = performance.now();
+    function animate(t){
+        const p = Math.min((t - start) / duration, 1);
+        wertEl.textContent = (old + (target - old) * p).toFixed(2);
+        if(p < 1) requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
 
     const list = document.getElementById("liveCards");
     list.innerHTML = "";
@@ -78,12 +99,9 @@ applyTheme(savedTheme);
 document.getElementById("themeToggle").onclick = () => {
     const btn = document.getElementById("themeToggle");
     btn.classList.add("rotate");
-
     setTimeout(() => btn.classList.remove("rotate"), 400);
-
     const newTheme =
         document.body.classList.contains("light") ? "dark" : "light";
-
     applyTheme(newTheme);
     localStorage.setItem("theme", newTheme);
 };
@@ -97,12 +115,10 @@ document.addEventListener("touchstart", (e) => {
 document.addEventListener("touchend", (e) => {
     const touchEndX = e.changedTouches[0].clientX;
     const diff = touchEndX - touchStartX;
-
     if (diff > 80) sidebar.classList.add("open");
     if (diff < -80) sidebar.classList.remove("open");
 });
 </script>
-
 
 </body>
 </html>

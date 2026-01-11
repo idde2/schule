@@ -117,6 +117,14 @@ def delete(id):
     cursor = conn.cursor()
     cursor.execute("DELETE FROM daten WHERE id = %s", (id,))
     conn.commit()
+
+    user_ip = request.remote_addr
+    cursor.execute(
+        "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
+        (user_ip, id, "", "delete")
+    )
+    conn.commit()
+
     cursor.close()
     conn.close()
     return redirect("/admin")
@@ -135,6 +143,14 @@ def edit(id):
             (name, wert, id)
         )
         conn.commit()
+
+        user_ip = request.remote_addr
+        cursor.execute(
+            "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
+            (user_ip, name, wert, "edit")
+        )
+        conn.commit()
+
         cursor.close()
         conn.close()
         return redirect("/admin")
@@ -155,6 +171,13 @@ def delete_all():
     cursor.execute("DELETE FROM daten")
     cursor.execute("ALTER TABLE daten AUTO_INCREMENT = 1")
     cursor.execute("ALTER TABLE verlauf AUTO_INCREMENT = 1")
+    conn.commit()
+
+    user_ip = request.remote_addr
+    cursor.execute(
+        "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
+        (user_ip,"-","-", "delete all")
+    )
     conn.commit()
 
     cursor.close()
@@ -410,6 +433,11 @@ def turnier_cooldown():
 @socketio.on('request_state')
 def handle_request_state():
     emit('state_update', serialize_state())
+
+
+@app.route("/info")
+def info():
+    return render_template("info.html")
 
 
 

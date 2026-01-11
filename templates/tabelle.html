@@ -21,6 +21,12 @@
 
 <button id="toggleBtn" class="toggle-btn">☰</button>
 
+<input id="search" placeholder="Suchen…" class="suche">
+
+<a class="I" href="/info">
+    <img class="I" src="{{ url_for('static', filename='images/I.png') }}" width="24" height="24">
+</a>
+
 <table>
     <thead>
         <tr>
@@ -44,6 +50,15 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 <script>
+const s = document.getElementById("search");
+s.oninput = () => {
+    const v = s.value.toLowerCase();
+    document.querySelectorAll("table tr").forEach(r => {
+        const t = r.textContent.toLowerCase();
+        r.style.display = t.includes(v) ? "" : "none";
+    });
+};
+
 const sidebar = document.getElementById("sidebar");
 document.getElementById("toggleBtn").onclick = () =>
     sidebar.classList.toggle("open");
