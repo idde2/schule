@@ -1,3 +1,12 @@
+const s = document.getElementById("search");
+s.oninput = () => {
+    const v = s.value.toLowerCase();
+    document.querySelectorAll("table tr").forEach(r => {
+        const t = r.textContent.toLowerCase();
+        r.style.display = t.includes(v) ? "" : "none";
+    });
+};
+
 const sidebar = document.getElementById("sidebar");
 document.getElementById("toggleBtn").onclick = () =>
     sidebar.classList.toggle("open");

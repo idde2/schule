@@ -8,6 +8,7 @@
 </head>
 
 <body>
+<h1 style="font-size: 50px;  line-height: 0.5;">Tabelle</h1>
 
 <div id="sidebar" class="sidebar">
     <p></p>
@@ -21,7 +22,7 @@
 
 <button id="toggleBtn" class="toggle-btn">☰</button>
 
-<input id="search" placeholder="Suchen…" class="suche">
+<input id="search" placeholder="Suchen…" class="suche" style="line-height: 0.5;">
 
 <a class="I" href="/info">
     <img class="I" src="{{ url_for('static', filename='images/I.png') }}" width="24" height="24">
@@ -49,80 +50,7 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
-<script>
-const s = document.getElementById("search");
-s.oninput = () => {
-    const v = s.value.toLowerCase();
-    document.querySelectorAll("table tr").forEach(r => {
-        const t = r.textContent.toLowerCase();
-        r.style.display = t.includes(v) ? "" : "none";
-    });
-};
-
-const sidebar = document.getElementById("sidebar");
-document.getElementById("toggleBtn").onclick = () =>
-    sidebar.classList.toggle("open");
-
-const socket = io();
-
-socket.on("tabelle_update", (data) => {
-    const tbody = document.getElementById("tbody");
-    if (!tbody) return;
-
-    tbody.innerHTML = "";
-    data.daten.forEach(row => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${row.id}</td>
-                <td>${row.name}</td>
-                <td>${row.wert}</td>
-            </tr>
-        `;
-    });
-});
-
-function applyTheme(theme) {
-    document.body.classList.toggle("light", theme === "light");
-    document.getElementById("themeToggle").textContent = theme === "light" ? "☀️" : "🌙";
-}
-
-let savedTheme = localStorage.getItem("theme") ||
-    (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
-
-applyTheme(savedTheme);
-
-document.getElementById("themeToggle").onclick = () => {
-    const btn = document.getElementById("themeToggle");
-    btn.classList.add("rotate");
-
-    setTimeout(() => btn.classList.remove("rotate"), 400);
-
-    const newTheme = document.body.classList.contains("light") ? "dark" : "light";
-    applyTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-};
-
-
-
-let touchStartX = 0;
-
-document.addEventListener("touchstart", (e) => {
-    touchStartX = e.touches[0].clientX;
-});
-
-document.addEventListener("touchend", (e) => {
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchEndX - touchStartX;
-
-    if (diff > 80) {
-        sidebar.classList.add("open");
-    }
-    if (diff < -80) {
-        sidebar.classList.remove("open");
-    }
-});
-
-</script>
+<script src="/static/js/tabelle.js"> </script>
 
 </body>
 </html>

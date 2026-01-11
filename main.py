@@ -18,7 +18,15 @@ app.config['SECRET_KEY'] = 'secret'
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC")
+    daten = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+    return render_template("index.html", daten=daten )
 
 @app.route("/tabelle")
 def tabelle():
@@ -121,7 +129,7 @@ def delete(id):
     user_ip = request.remote_addr
     cursor.execute(
         "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-        (user_ip, id, "", "delete")
+        (user_ip, id, 0.0, "delete")
     )
     conn.commit()
 
@@ -176,7 +184,7 @@ def delete_all():
     user_ip = request.remote_addr
     cursor.execute(
         "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-        (user_ip,"-","-", "delete all")
+        (user_ip,"-",0.0, "delete all")
     )
     conn.commit()
 
@@ -194,14 +202,48 @@ def delete_all():
 def protect_admin():
     if request.path.startswith("/admin"):
         if session.get("admin_ok") != True:
+            conn = get_connection()
+            cursor = conn.cursor()
+            user_ip = request.remote_addr
+            cursor.execute(
+                "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
+                (user_ip, "-", 0.0, "pin")
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
             return redirect("/pin")
 
 @app.route("/pin", methods=["GET", "POST"])
 def pin():
+
     if request.method == "POST":
         if request.form.get("pin") == "2026":
             session["admin_ok"] = True
+
+            conn = get_connection()
+            cursor = conn.cursor()
+            user_ip = request.remote_addr
+            cursor.execute(
+                "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
+                (user_ip, "-", 0.0, "Admin ok")
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+
             return redirect("/admin")
+        else:
+            conn = get_connection()
+            cursor = conn.cursor()
+            user_ip = request.remote_addr
+            cursor.execute(
+                "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
+                (user_ip, "-", float(request.form.get("pin")), "Admin falsch")
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
         return render_template("pin.html", error=True)
     return render_template("pin.html")
 
@@ -213,12 +255,8 @@ def logout():
 
 @app.route("/export/csv")
 def export_csv():
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="py",
-        password="py!!",
-        database="schule"
-    )
+    conn = get_connection()
+
     c = conn.cursor()
     c.execute("SELECT id, name, wert FROM daten")
     rows = c.fetchall()
@@ -239,12 +277,7 @@ def export_csv():
 
 @app.route("/export/excel")
 def export_excel():
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="py",
-        password="py!!",
-        database="schule"
-    )
+    conn = get_connection()
     c = conn.cursor()
     c.execute("SELECT id, name, wert FROM daten")
     rows = c.fetchall()
@@ -271,12 +304,7 @@ def export_excel():
 
 @app.route("/profile")
 def profile_list():
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="py",
-        password="py!!",
-        database="schule"
-    )
+    conn = get_connection()
     c = conn.cursor()
     c.execute("SELECT id, name, wert FROM daten ORDER BY name ASC")
     daten = c.fetchall()
@@ -286,12 +314,7 @@ def profile_list():
 
 @app.route("/profil/<int:teilnehmer_id>")
 def profil(teilnehmer_id):
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="py",
-        password="py!!",
-        database="schule"
-    )
+    conn = get_connection()
     c = conn.cursor()
 
     c.execute("SELECT id, name, wert FROM daten WHERE id = %s", (teilnehmer_id,))
@@ -315,18 +338,24 @@ def profil(teilnehmer_id):
 
 @app.route("/admin/log")
 def admin_log():
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="py",
-        password="py!!",
-        database="schule"
-    )
+    conn = get_connection()
     c = conn.cursor()
     c.execute("SELECT ip, name, wert, action, timestamp FROM log ORDER BY timestamp DESC")
     logs = c.fetchall()
     conn.close()
 
     return render_template("admin_log.html", logs=logs)
+
+@app.route("/delete_all_logs")
+def delete_all_logs():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM log")
+    cursor.execute("ALTER TABLE log AUTO_INCREMENT = 1")
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return redirect("/admin/log")
 
 
 
@@ -433,6 +462,7 @@ def turnier_cooldown():
 @socketio.on('request_state')
 def handle_request_state():
     emit('state_update', serialize_state())
+
 
 
 @app.route("/info")

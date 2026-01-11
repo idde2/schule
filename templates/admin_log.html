@@ -11,14 +11,16 @@
 
 <h1>Admin Log</h1>
 
+<a id="deleteLogsBtn"  class="deleteLogs">
+     Alle Logs löschen
+</a>
+
 <select id="filter" class="suche">
     <option value="">Alle</option>
     <option value="eingabe">Eingaben</option>
     <option value="delete">Löschungen</option>
     <option value="edit">Bearbeitungen</option>
 </select>
-
-
 
 <div class="card-list">
     {% for ip, name, wert, action, ts in logs %}
@@ -49,53 +51,7 @@
 </a>
 
 
-<script>
-const sidebar = document.getElementById("sidebar");
-document.getElementById("toggleBtn").onclick = () =>
-    sidebar.classList.toggle("open");
-
-function applyTheme(theme) {
-    document.body.classList.toggle("light", theme === "light");
-    document.getElementById("themeToggle").textContent =
-        theme === "light" ? "☀️" : "🌙";
-}
-
-let savedTheme = localStorage.getItem("theme") ||
-    (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
-
-applyTheme(savedTheme);
-
-document.getElementById("themeToggle").onclick = () => {
-    const btn = document.getElementById("themeToggle");
-    btn.classList.add("rotate");
-    setTimeout(() => btn.classList.remove("rotate"), 400);
-    const newTheme = document.body.classList.contains("light") ? "dark" : "light";
-    applyTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-};
-
-let touchStartX = 0;
-
-document.addEventListener("touchstart", (e) => {
-    touchStartX = e.touches[0].clientX;
-});
-
-document.addEventListener("touchend", (e) => {
-    const diff = e.changedTouches[0].clientX - touchStartX;
-    if (diff > 80) sidebar.classList.add("open");
-    if (diff < -80) sidebar.classList.remove("open");
-});
-
-const f = document.getElementById("filter");
-f.onchange = () => {
-    const v = f.value.toLowerCase();
-    document.querySelectorAll(".card").forEach(c => {
-        const t = c.textContent.toLowerCase();
-        c.style.display = v === "" || t.includes(v) ? "" : "none";
-    });
-};
-
-</script>
+<script src="/static/js/admin_log.js"></script>
 
 </body>
 </html>
