@@ -74,12 +74,8 @@ def eingabe():
         conn.commit()
         new_id = cursor.lastrowid
 
-        user_ip = request.remote_addr
-        cursor.execute(
-            "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-            (user_ip, name, wert, "eingabe")
-        )
-        conn.commit()
+
+        log( name, wert, "eingabe")
 
         cursor.execute("SELECT name, wert FROM daten ORDER BY wert DESC")
         rang = cursor.fetchall()
@@ -126,13 +122,8 @@ def delete(id):
     cursor.execute("DELETE FROM daten WHERE id = %s", (id,))
     conn.commit()
 
-    user_ip = request.remote_addr
-    cursor.execute(
-        "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-        (user_ip, id, 0.0, "delete")
-    )
-    conn.commit()
 
+    log(id, 0.0, "delete")
     cursor.close()
     conn.close()
     return redirect("/admin")
@@ -152,12 +143,9 @@ def edit(id):
         )
         conn.commit()
 
-        user_ip = request.remote_addr
-        cursor.execute(
-            "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-            (user_ip, name, wert, "edit")
-        )
-        conn.commit()
+
+        log(name, wert, "edit")
+
 
         cursor.close()
         conn.close()
@@ -181,12 +169,9 @@ def delete_all():
     cursor.execute("ALTER TABLE verlauf AUTO_INCREMENT = 1")
     conn.commit()
 
-    user_ip = request.remote_addr
-    cursor.execute(
-        "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-        (user_ip,"-",0.0, "delete all")
-    )
-    conn.commit()
+
+    log("-",0.0, "delete all")
+
 
     cursor.close()
     conn.close()
@@ -202,16 +187,9 @@ def delete_all():
 def protect_admin():
     if request.path.startswith("/admin"):
         if session.get("admin_ok") != True:
-            conn = get_connection()
-            cursor = conn.cursor()
-            user_ip = request.remote_addr
-            cursor.execute(
-                "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-                (user_ip, "-", 0.0, "pin")
-            )
-            conn.commit()
-            cursor.close()
-            conn.close()
+
+            log("-", 0.0, "Admin pin")
+
             return redirect("/pin")
 
 @app.route("/pin", methods=["GET", "POST"])
@@ -221,35 +199,18 @@ def pin():
         if request.form.get("pin") == "2026":
             session["admin_ok"] = True
 
-            conn = get_connection()
-            cursor = conn.cursor()
-            user_ip = request.remote_addr
-            cursor.execute(
-                "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-                (user_ip, "-", 0.0, "Admin ok")
-            )
-            conn.commit()
-            cursor.close()
-            conn.close()
+            log("-", 0.0, "Admin ok")
 
             return redirect("/admin")
         else:
-            conn = get_connection()
-            cursor = conn.cursor()
-            user_ip = request.remote_addr
-            cursor.execute(
-                "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-                (user_ip, "-", float(request.form.get("pin")), "Admin falsch")
-            )
-            conn.commit()
-            cursor.close()
-            conn.close()
+            log("-", float(request.form.get("pin")), "Admin falsch")
         return render_template("pin.html", error=True)
     return render_template("pin.html")
 
 @app.route("/logout")
 def logout():
     session.clear()
+    log("", 0.0, "Admin logout")
     return redirect("/admin")
 
 
@@ -367,6 +328,13 @@ def info():
 def test():
     return render_template("test.html")
 
+@app.route("/turnier")
+def turnier():
+    return render_template("turnier.html")
+
+
+
+
 
 def background_updater():
     while True:
@@ -412,6 +380,18 @@ def background_updater():
         })
 
         socketio.sleep(1)
+
+def log(name, wert, action):
+    conn = get_connection()
+    cursor = conn.cursor()
+    user_ip = request.remote_addr
+    cursor.execute(
+        "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
+        (user_ip, name, wert, action)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 
 

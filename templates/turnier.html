@@ -9,28 +9,46 @@
 </head>
 <body>
 
-<div class="container">
-    <h1>Turnier Manager</h1>
+<div class="pyramid">
 
-    <div class="box">
-        <label>Spieleranzahl</label>
-        <input id="num_players" type="number" value="8" min="2">
-
-        <label>Parallele Spiele</label>
-        <input id="max_parallel_games" type="number" value="2" min="1">
-
-        <button onclick="initTournament()">Turnier starten</button>
-        <button onclick="startMatches()">Nächste Spiele</button>
-        <button onclick="cooldownTick()">Cooldown Tick</button>
+    <div class="row">
+        <div id="win" class="box">?</div>
     </div>
 
-    <h2>Spieler</h2>
-    <div id="players"></div>
+    <div class="row">
+        <div id="half-win1" class="box">?</div>
+        <div id="half-win2" class="box">?</div>
+    </div>
 
-    <h2>Matches</h2>
-    <div id="matches"></div>
+    <div class="row">
+        <div id="winAB" class="box">?</div>
+        <div id="winBC" class="box">?</div>
+        <div id="winCD" class="box">?</div>
+    </div>
+
+    <div class="row">
+        <div class="box">A</div>
+        <div class="box">B</div>
+        <div class="box">C</div>
+        <div class="box">D</div>
+    </div>
+
+
+<!--    <div class="brace a">}</div>-->
+<!--    <div class="brace b">}</div>-->
+<!--    <div class="brace c">}</div>-->
+<!--    <div class="brace d">}</div>-->
+<!--    <div class="brace e">}</div>-->
+<!--    <div class="brace f">}</div>-->
+
+
+
+
 </div>
 
-<script src="/static/turnier.js"></script>
+
+
+<script src="/static/js/turnier.js"></script>
+<script src="/static/js/main.js"></script>
 </body>
 </html>

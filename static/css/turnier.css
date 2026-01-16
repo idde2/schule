@@ -1,51 +1,49 @@
-body {
-    background-color: #1a1a1a;
-    color: white;
-    font-family: Arial, sans-serif;
+.pyramid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    font-size: 60px;
 }
 
-.container {
-    width: 600px;
-    margin: 40px auto;
-    background: #2a2a2a;
-    padding: 20px;
-    border-radius: 10px;
+.row {
+    display: flex;
+    gap: 20px;
 }
 
 .box {
-    background: #333;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    padding: 10px 20px;
+    background: #6a6a6a;
+    border: 2px solid #444;
 }
 
-input {
-    width: 100%;
-    padding: 6px;
-    margin-bottom: 10px;
-    background: #444;
-    border: none;
-    color: white;
-}
 
-button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    background: #4a76ff;
-    border: none;
-    color: white;
-    cursor: pointer;
-    border-radius: 5px;
-}
+.brace {
+    position: absolute;
 
-button:hover {
-    background: #3a5fe0;
+    font-size: 85px;
+    rotate: z 270deg;
 }
-
-.player, .match {
-    background: #333;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 6px;
+.brace.a {
+    top: 65px;
+}
+.brace.b {
+    top: 200px;
+    left: 46%;
+}
+.brace.c {
+    top: 200px;
+    left: 51.5%;
+}
+.brace.d {
+    top: 330px;
+    left: 44%;
+}
+.brace.e {
+    top: 330px;
+    left: 50%;
+}
+.brace.f {
+    top: 330px;
+    left: 55%;
 }
