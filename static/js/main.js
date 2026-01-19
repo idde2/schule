@@ -19,6 +19,12 @@ document.getElementById("toggleBtn").onclick = () =>
 
 function applyTheme(theme) {
     document.body.classList.toggle("light", theme === "light");
+
+    const cont = document.querySelector(".container");
+    if (cont) cont.classList.toggle("light", theme === "light");
+    const s = document.querySelector(".suche");
+    if (s) s.classList.toggle("light", theme === "light");
+
     document.getElementById("themeToggle").textContent =
         theme === "light" ? "☀️" : "🌙";
 }

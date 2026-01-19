@@ -21,6 +21,7 @@
     <option value="delete">Löschungen</option>
     <option value="edit">Bearbeitungen</option>
     <option value="admin">Admin</option>
+    <option value="aufruf">Aufrufe</option>
     
 </select>
 
@@ -44,6 +45,9 @@
     <a href="/eingabe">Eingabe</a>
     <a href="/admin" style="font-weight: bold;">Admin</a>
     <button class="toggle-btn2" id="themeToggle">🌙</button>
+    <a class="logout" href="/logout">
+        <img class="logout" src="{{ url_for('static', filename='images/logout.png') }}" width="24" height="24">
+    </a>
 </div>
 
 <button id="toggleBtn" class="toggle-btn">☰</button>

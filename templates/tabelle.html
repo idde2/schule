@@ -8,6 +8,7 @@
 </head>
 
 <body>
+
 <h1 style="font-size: 50px;  line-height: 0.5;">Tabelle</h1>
 
 <div id="sidebar" class="sidebar">
@@ -17,7 +18,10 @@
     <a href="/rang">Rang</a>
     <a href="/eingabe">Eingabe</a>
     <a href="/admin">Admin</a>
-    <button class="toggle-btn2" id="themeToggle">🌗 Theme wechseln</button>
+    <button class="toggle-btn2" id="themeToggle">🌙</button>
+    <a class="logout" href="/logout">
+        <img class="logout" src="{{ url_for('static', filename='images/logout.png') }}" width="24" height="24">
+    </a>
 </div>
 
 <button id="toggleBtn" class="toggle-btn">☰</button>

@@ -192,6 +192,31 @@ def protect_admin():
 
             return redirect("/pin")
 
+@app.before_request
+def protect_main():
+    if not request.path.startswith("/login") :
+        if session.get("main") != True:
+
+
+            return redirect("/login")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        if request.form.get("login") == "2026":
+            session["main"] = True
+
+            log("-", 0.0, "Aufruf ok")
+
+            return redirect("/")
+        else:
+            log("-", 0.0, "Aufruf falsch")
+            return render_template("login.html", error=True)
+    if session.get("main") != True:
+        return render_template("login.html")
+
+
+
 @app.route("/pin", methods=["GET", "POST"])
 def pin():
 
@@ -207,12 +232,17 @@ def pin():
         return render_template("pin.html", error=True)
     return render_template("pin.html")
 
-@app.route("/logout")
-def logout():
-    session.clear()
+@app.route("/admin/logout")
+def admin_logout():
+    session["admin_ok"] = False
     log("", 0.0, "Admin logout")
     return redirect("/admin")
 
+@app.route("/logout")
+def logout():
+    session["main"] = False
+    log("", 0.0, "logout")
+    return redirect("/login")
 
 @app.route("/export/csv")
 def export_csv():

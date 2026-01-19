@@ -58,7 +58,9 @@ body {
 }
 
 .sidebar a:hover, .sidebar button:hover {
-    background-color: var(--row-bg);
+    background-color: #353535;
+    text-decoration: underline;
+
 }
 
 .toggle-btn {
@@ -110,12 +112,12 @@ body {
     color: White;
     background-color: #474747;
 }
-suche.light {
+.suche.light {
     padding:10px;
     font-size:20px;
     margin-bottom:10px;
-    color: White;
-    background-color: #474747;
+    color: #000000;
+    background-color: #d1d1d1;
 }
 
 .I {
@@ -132,3 +134,21 @@ suche.light {
     background-color: #3B3B3B
 }
 
+.container.light {
+    border: 5px none ;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+.logout {
+    position: fixed;
+    bottom: 47px;
+    left: 160px;
+    color: white;
+    border: none;
+    padding: 4px 4px;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    z-index: 1100;
+}
