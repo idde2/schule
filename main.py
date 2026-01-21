@@ -7,12 +7,11 @@ import openpyxl
 from datetime import datetime
 from flask_socketio import SocketIO
 from pyngrok import ngrok, conf
-
-
-from sql import get_connection
+import os
+from func import get_connection, set_config, get_conf
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode="threading")
 app.secret_key = "supersecretkey2025"
 app.config['SECRET_KEY'] = 'secret'
 
@@ -196,14 +195,12 @@ def protect_admin():
 def protect_main():
     if not request.path.startswith("/login") :
         if session.get("main") != True:
-
-
             return redirect("/login")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        if request.form.get("login") == "2026":
+        if request.form.get("login") == get_conf("login"):
             session["main"] = True
 
             log("-", 0.0, "Aufruf ok")
@@ -221,7 +218,7 @@ def login():
 def pin():
 
     if request.method == "POST":
-        if request.form.get("pin") == "2026":
+        if request.form.get("pin") == get_conf("pin"):
             session["admin_ok"] = True
 
             log("-", 0.0, "Admin ok")
@@ -241,6 +238,7 @@ def admin_logout():
 @app.route("/logout")
 def logout():
     session["main"] = False
+    session["admin_ok"]= False
     log("", 0.0, "logout")
     return redirect("/login")
 
@@ -427,13 +425,33 @@ def log(name, wert, action):
 
 if __name__ == "__main__":
 
-    num = input("number:")
-    if num == "1":
+    set_config()
+
+
+    if get_conf("ngrok") == False:
+        num = input("number:")
+        if num == "1":
+            if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+                from pyngrok import ngrok, conf
+                conf.get_default().auth_token = "37Rwi5yWodWiErSDF3zrKEiam7x_3jaqt3R8w28zvNKNEt3Pt"
+                public_url = ngrok.connect(5000, "http")
+                print("NGROK URL:", public_url)
+    if get_conf("ngrok") == True:
         if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
             from pyngrok import ngrok, conf
+
             conf.get_default().auth_token = "37Rwi5yWodWiErSDF3zrKEiam7x_3jaqt3R8w28zvNKNEt3Pt"
             public_url = ngrok.connect(5000, "http")
             print("NGROK URL:", public_url)
 
     socketio.start_background_task(background_updater)
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    socketio.run(
+        app,
+        host="0.0.0.0",
+        port=get_conf("port"),
+        debug=True,
+
+        allow_unsafe_werkzeug=True
+    )
+
+#         ssl_context=("https/cert.pem", "https/key.pem"),

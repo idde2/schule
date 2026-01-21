@@ -22,8 +22,12 @@ function applyTheme(theme) {
 
     const cont = document.querySelector(".container");
     if (cont) cont.classList.toggle("light", theme === "light");
+
     const s = document.querySelector(".suche");
-    if (s) s.classList.toggle("light", theme === "light");
+    if (s) s.classList.toggle("light", theme === "light")
+
+    const input = document.querySelector(".input");
+    if (input) input.classList.toggle("light", theme === "light")
 
     document.getElementById("themeToggle").textContent =
         theme === "light" ? "☀️" : "🌙";

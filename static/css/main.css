@@ -57,9 +57,12 @@ body {
     cursor: pointer;
 }
 
-.sidebar a:hover, .sidebar button:hover {
-    background-color: #353535;
+.sidebar a:hover {
     text-decoration: underline;
+    background-color: #353535;
+}
+.sidebar button:hover {
+    background-color: #353535;
 
 }
 
@@ -89,6 +92,7 @@ body {
     cursor: pointer;
     border-radius: 4px;
     z-index: 1100;
+    text-decoration: none;
 }
 
 #themeToggle {
