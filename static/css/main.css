@@ -156,3 +156,17 @@ body {
     border-radius: 4px;
     z-index: 1100;
 }
+
+.reconnect {
+    position:absolute;
+    left: 35%;
+    top:0px;
+    width:30%;
+    padding:12px;
+    background:#c0392b;
+    color:white;
+    text-align:center;
+    font-size:20px;
+    display:none;
+    z-index:5000;
+}

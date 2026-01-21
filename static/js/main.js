@@ -46,3 +46,13 @@ document.getElementById("themeToggle").onclick = () => {
     applyTheme(newTheme);
     localStorage.setItem("theme", newTheme);
 };
+
+
+
+socket.on("disconnect", () => {
+    document.getElementById("reconnect").style.display = "block";
+});
+
+socket.on("connect", () => {
+    document.getElementById("reconnect").style.display = "none";
+});

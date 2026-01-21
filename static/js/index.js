@@ -1,12 +1,6 @@
 const socket = io();
 
-socket.on("disconnect", () => {
-    document.getElementById("reconnect").style.display = "block";
-});
 
-socket.on("connect", () => {
-    document.getElementById("reconnect").style.display = "none";
-});
 
 socket.on("update", (data) => {
     const idEl = document.getElementById("id");

@@ -364,6 +364,31 @@ def turnier():
 
 
 
+settings = {
+    "mode": "default",
+    "threshold": 10,
+    "active": True
+}
+@app.get("/api")
+def get_settings():
+    return jsonify(settings)
+@app.post("/api")
+def update_settings():
+    data = request.json
+    for key, value in data.items():
+        settings[key] = value
+        return jsonify({"status": "ok", "updated": data})
+
+@app.get("/api/var/<name>")
+def get_variable(name):
+    return jsonify({name: settings.get(name)})
+@app.post("/api/var/<name>")
+def set_variable(name):
+    value = request.json.get("value")
+    settings[name] = value
+    return jsonify({"status": "ok", name: value})
+
+
 def background_updater():
     while True:
         conn = get_connection()
@@ -427,19 +452,15 @@ if __name__ == "__main__":
 
     set_config()
 
-
-    if get_conf("ngrok") == False:
-        num = input("number:")
-        if num == "1":
-            if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-                from pyngrok import ngrok, conf
-                conf.get_default().auth_token = "37Rwi5yWodWiErSDF3zrKEiam7x_3jaqt3R8w28zvNKNEt3Pt"
-                public_url = ngrok.connect(5000, "http")
-                print("NGROK URL:", public_url)
-    if get_conf("ngrok") == True:
-        if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-            from pyngrok import ngrok, conf
-
+    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        ngrok.kill()
+        if get_conf("ngrok") == "False":
+            num = input("number:")
+            if num == "1":
+                    conf.get_default().auth_token = "37Rwi5yWodWiErSDF3zrKEiam7x_3jaqt3R8w28zvNKNEt3Pt"
+                    public_url = ngrok.connect(5000, "http")
+                    print("NGROK URL:", public_url)
+        if get_conf("ngrok") == "True":
             conf.get_default().auth_token = "37Rwi5yWodWiErSDF3zrKEiam7x_3jaqt3R8w28zvNKNEt3Pt"
             public_url = ngrok.connect(5000, "http")
             print("NGROK URL:", public_url)
