@@ -1,5 +1,4 @@
 import os
-
 from flask import Flask, render_template, request, redirect, session, make_response, jsonify
 import csv
 import io
@@ -193,7 +192,7 @@ def protect_admin():
 
 @app.before_request
 def protect_main():
-    if not request.path.startswith("/login") :
+    if not request.path.startswith("/login") and not request.path.startswith("/api") :
         if session.get("main") != True:
             return redirect("/login")
 
@@ -365,28 +364,39 @@ def turnier():
 
 
 settings = {
-    "mode": "default",
-    "threshold": 10,
-    "active": True
+    "update": False
 }
 @app.get("/api")
 def get_settings():
     return jsonify(settings)
 @app.post("/api")
 def update_settings():
-    data = request.json
+    data = {}
+
+    if request.args:
+        data.update(request.args)
+
+    if request.json:
+        data.update(request.json)
+
     for key, value in data.items():
         settings[key] = value
-        return jsonify({"status": "ok", "updated": data})
+
+    return jsonify({"status": "ok", "updated": data})
+
+
 
 @app.get("/api/var/<name>")
 def get_variable(name):
     return jsonify({name: settings.get(name)})
+
 @app.post("/api/var/<name>")
 def set_variable(name):
     value = request.json.get("value")
     settings[name] = value
     return jsonify({"status": "ok", name: value})
+
+
 
 
 def background_updater():
@@ -415,9 +425,7 @@ def background_updater():
             id, name, wert = None, None, None
 
         socketio.emit("update", {
-            "id": id,
-            "name": name,
-            "wert": wert
+            "id": id, "name": name, "wert": wert
         })
 
         socketio.emit("tabelle_update", {
@@ -433,6 +441,8 @@ def background_updater():
         })
 
         socketio.sleep(1)
+
+
 
 def log(name, wert, action):
     conn = get_connection()
