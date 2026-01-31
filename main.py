@@ -1,4 +1,3 @@
-import os
 from flask import Flask, render_template, request, redirect, session, make_response, jsonify
 import csv
 import io
@@ -7,12 +6,14 @@ from datetime import datetime
 from flask_socketio import SocketIO
 from pyngrok import ngrok, conf
 import os
-from func import get_connection, set_config, get_conf
+from func import get_connection, set_config, get_conf, log, background_updater, register_socketio
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode="threading")
 app.secret_key = "supersecretkey2025"
 app.config['SECRET_KEY'] = 'secret'
+register_socketio(socketio)
+
 
 @app.route("/")
 def index():
@@ -24,7 +25,8 @@ def index():
 
     cursor.close()
     conn.close()
-    return render_template("index.html", daten=daten )
+    return render_template("index.html", daten=daten)
+
 
 @app.route("/tabelle")
 def tabelle():
@@ -37,7 +39,8 @@ def tabelle():
     cursor.close()
     conn.close()
 
-    return render_template("tabelle.html", daten=daten )
+    return render_template("tabelle.html", daten=daten)
+
 
 @app.route("/rang")
 def rang():
@@ -72,8 +75,7 @@ def eingabe():
         conn.commit()
         new_id = cursor.lastrowid
 
-
-        log( name, wert, "eingabe")
+        log(name, wert, "eingabe")
 
         cursor.execute("SELECT name, wert FROM daten ORDER BY wert DESC")
         rang = cursor.fetchall()
@@ -101,8 +103,6 @@ def eingabe():
     return render_template("eingabe.html", namen=namen)
 
 
-
-
 @app.route("/admin")
 def admin():
     conn = get_connection()
@@ -113,6 +113,7 @@ def admin():
     conn.close()
     return render_template("admin.html", daten=daten)
 
+
 @app.route("/delete/<int:id>")
 def delete(id):
     conn = get_connection()
@@ -120,11 +121,11 @@ def delete(id):
     cursor.execute("DELETE FROM daten WHERE id = %s", (id,))
     conn.commit()
 
-
     log(id, 0.0, "delete")
     cursor.close()
     conn.close()
     return redirect("/admin")
+
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
 def edit(id):
@@ -141,9 +142,7 @@ def edit(id):
         )
         conn.commit()
 
-
         log(name, wert, "edit")
-
 
         cursor.close()
         conn.close()
@@ -156,6 +155,7 @@ def edit(id):
 
     return render_template("edit.html", eintrag=eintrag)
 
+
 @app.route("/delete_all")
 def delete_all():
     conn = get_connection()
@@ -167,9 +167,7 @@ def delete_all():
     cursor.execute("ALTER TABLE verlauf AUTO_INCREMENT = 1")
     conn.commit()
 
-
-    log("-",0.0, "delete all")
-
+    log("-", 0.0, "delete all")
 
     cursor.close()
     conn.close()
@@ -185,16 +183,17 @@ def delete_all():
 def protect_admin():
     if request.path.startswith("/admin"):
         if session.get("admin_ok") != True:
-
             log("-", 0.0, "Admin pin")
 
             return redirect("/pin")
 
+
 @app.before_request
 def protect_main():
-    if not request.path.startswith("/login") and not request.path.startswith("/api") :
+    if not request.path.startswith("/login") and not request.path.startswith("/api"):
         if session.get("main") != True:
             return redirect("/login")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -212,10 +211,8 @@ def login():
         return render_template("login.html")
 
 
-
 @app.route("/pin", methods=["GET", "POST"])
 def pin():
-
     if request.method == "POST":
         if request.form.get("pin") == get_conf("pin"):
             session["admin_ok"] = True
@@ -228,18 +225,21 @@ def pin():
         return render_template("pin.html", error=True)
     return render_template("pin.html")
 
+
 @app.route("/admin/logout")
 def admin_logout():
     session["admin_ok"] = False
     log("", 0.0, "Admin logout")
     return redirect("/admin")
 
+
 @app.route("/logout")
 def logout():
     session["main"] = False
-    session["admin_ok"]= False
+    session["admin_ok"] = False
     log("", 0.0, "logout")
     return redirect("/login")
+
 
 @app.route("/export/csv")
 def export_csv():
@@ -290,6 +290,7 @@ def export_excel():
     response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return response
 
+
 @app.route("/profile")
 def profile_list():
     conn = get_connection()
@@ -299,6 +300,7 @@ def profile_list():
     conn.close()
 
     return render_template("profile_list.html", daten=daten)
+
 
 @app.route("/profil/<int:teilnehmer_id>")
 def profil(teilnehmer_id):
@@ -398,63 +400,6 @@ def set_variable(name):
 
 
 
-
-def background_updater():
-    while True:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC LIMIT 1")
-        latest = cursor.fetchone()
-
-        cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC")
-        alle = cursor.fetchall()
-
-        cursor.execute("SELECT name, wert FROM daten ORDER BY wert DESC")
-        rang = cursor.fetchall()
-
-        cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC")
-        admin = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
-
-        if latest:
-            id, name, wert = latest
-        else:
-            id, name, wert = None, None, None
-
-        socketio.emit("update", {
-            "id": id, "name": name, "wert": wert
-        })
-
-        socketio.emit("tabelle_update", {
-            "daten": [{"id": r[0], "name": r[1], "wert": r[2]} for r in alle]
-        })
-
-        socketio.emit("rang_update", {
-            "daten": [{"name": r[0], "wert": r[1]} for r in rang]
-        })
-
-        socketio.emit("admin_update", {
-            "daten": [{"id": r[0], "name": r[1], "wert": r[2]} for r in admin]
-        })
-
-        socketio.sleep(1)
-
-
-
-def log(name, wert, action):
-    conn = get_connection()
-    cursor = conn.cursor()
-    user_ip = request.remote_addr
-    cursor.execute(
-        "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-        (user_ip, name, wert, action)
-    )
-    conn.commit()
-    cursor.close()
-    conn.close()
 
 
 

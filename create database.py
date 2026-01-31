@@ -1,10 +1,6 @@
-import mysql.connector
+from func import get_connection
 
-conn = mysql.connector.connect(
-    host="localhost",
-    user="py",
-    password="py!!"
-)
+conn = get_connection()
 cursor = conn.cursor()
 
 cursor.execute("CREATE DATABASE IF NOT EXISTS schule")

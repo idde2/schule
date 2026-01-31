@@ -1,0 +1,21 @@
+.test {
+    display: inline-block;
+    padding: 12px 20px;
+    margin: auto auto;
+    top: 100px;
+    background-color: #00b894;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.test2 {
+    top: 100px;
+    font-size: 20px;
+
+
+
+}
