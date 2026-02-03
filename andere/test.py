@@ -38,13 +38,13 @@ PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
 hand_options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path="dateien/hand_landmarker.task"),
     running_mode=VisionRunningMode.VIDEO,
-    num_hands=2
+    num_hands=5
 )
 
 face_options = FaceLandmarkerOptions(
     base_options=BaseOptions(model_asset_path="dateien/face_landmarker.task"),
     running_mode=VisionRunningMode.VIDEO,
-    num_faces=1
+    num_faces=2
 )
 
 pose_options = PoseLandmarkerOptions(
