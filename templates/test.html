@@ -1,19 +1,407 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <meta charset="utf-8">
-    <title>...</title>
-    <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="stylesheet" href="/static/css/test.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FEZAcademy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=DM+Sans:wght@200;300&display=swap"
+          rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            background: #08060f;
+            overflow: hidden
+        }
+
+        canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            display: block
+        }
+
+        #input-area {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            width: min(580px, calc(100vw - 40px));
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .bar {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(10, 6, 20, 0.75);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 60px;
+            padding: 6px 6px 6px 22px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, .5), 0 0 50px rgba(107, 33, 212, .1);
+            transition: border-color .3s, box-shadow .3s;
+        }
+
+        .bar:focus-within {
+            border-color: rgba(168, 85, 247, .6);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, .5), 0 0 70px rgba(107, 33, 212, .25);
+        }
+
+        #prompt {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            font-size: 14px;
+            color: rgba(240, 230, 255, .95);
+            caret-color: #c084fc;
+        }
+
+        #prompt::placeholder {
+            color: rgba(168, 85, 247, .35)
+        }
+
+        #gen-btn {
+            flex-shrink: 0;
+            border: none;
+            border-radius: 50px;
+            padding: 13px 26px;
+            background: linear-gradient(135deg, #7c3aed, #9333ea, #a855f7);
+            font-family: 'Syncopate', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .22em;
+            color: #fff;
+            text-transform: uppercase;
+            box-shadow: 0 4px 18px rgba(107, 33, 212, .55);
+            transition: transform .18s, box-shadow .2s;
+            cursor: pointer;
+            min-width: 115px;
+        }
+
+        #gen-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 6px 28px rgba(107, 33, 212, .8)
+        }
+
+        #gen-btn:active {
+            transform: scale(.97)
+        }
+
+        #gen-btn:disabled {
+            opacity: .5;
+            pointer-events: none;
+            animation: glow 1s infinite
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 18px rgba(107, 33, 212, .55)
+            }
+
+            50% {
+                box-shadow: 0 0 50px rgba(168, 85, 247, .9)
+            }
+        }
+
+        .hint {
+            font-size: 10px;
+            letter-spacing: .18em;
+            color: rgba(168, 85, 247, .3);
+            text-transform: uppercase;
+            transition: opacity .4s
+        }
+
+        .hint.hidden {
+            opacity: 0;
+            pointer-events: none
+        }
+
+        #reset-btn {
+            position: fixed;
+            top: 32px;
+            right: 32px;
+            z-index: 20;
+            background: none;
+            border: 1px solid rgba(168, 85, 247, .2);
+            border-radius: 40px;
+            padding: 9px 18px;
+            font-family: 'Syncopate', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: .2em;
+            color: rgba(168, 85, 247, .5);
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .2s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #reset-btn.show {
+            opacity: 1;
+            pointer-events: all
+        }
+
+        #reset-btn:hover {
+            border-color: rgba(168, 85, 247, .6);
+            color: #c084fc
+        }
+    </style>
 </head>
+
 <body>
-<button class="test" id="btn">Click me</button>
-<div class="test2" id="output"></div>
+<canvas id="canvas"></canvas>
+
+<div id="input-area">
+    <div class="bar">
+        <input id="prompt" type="text" placeholder="Write Anything..." autocomplete="off" maxlength="18" />
+        <button id="gen-btn" onclick="generate()">Generate</button>
+    </div>
+    <div class="hint" id="hint">FEZAcademy</div>
+</div>
+<button id="reset-btn" onclick="resetSphere()">↩ Reset</button>
 
 <script>
-    document.getElementById("btn").addEventListener("click", () => {
-        document.getElementById("output").textContent = "Button clicked";
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+
+    // ─────────────────────────────────────────
+    const NUM = 1800;
+    const palette = ['#7c3aed', '#9333ea', '#a855f7', '#c084fc', '#e879f9', '#8b5cf6', '#d946ef'];
+
+    // Unit sphere positions
+    function makeSphere(n) {
+        const a = [];
+        for (let i = 0; i < n; i++) {
+            const phi = Math.acos(1 - 2 * (i + .5) / n);
+            const th = Math.PI * (1 + Math.sqrt(5)) * i;
+            a.push([Math.sin(phi) * Math.cos(th), Math.sin(phi) * Math.sin(th), Math.cos(phi)]);
+        }
+        return a;
+    }
+    const spherePts = makeSphere(NUM);
+
+    // Sample pixel positions from word, returns canvas-space coords
+    function sampleText(word, count) {
+        const OW = 2000, OH = 600;
+        const oc = document.createElement('canvas');
+        oc.width = OW; oc.height = OH;
+        const c = oc.getContext('2d');
+
+        let fs = 280;
+        c.font = `700 ${fs}px Syncopate, sans-serif`;
+        while (c.measureText(word).width > OW * 0.92 && fs > 40) {
+            fs -= 4;
+            c.font = `700 ${fs}px Syncopate, sans-serif`;
+        }
+
+        c.clearRect(0, 0, OW, OH);
+        c.fillStyle = '#fff';
+        c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillText(word, OW / 2, OH / 2);
+
+        const data = c.getImageData(0, 0, OW, OH).data;
+
+        const step = 4;
+        const pool = [];
+        for (let y = 0; y < OH; y += step) {
+            for (let x = 0; x < OW; x += step) {
+                if (data[(y * OW + x) * 4 + 3] > 80) pool.push([x, y]);
+            }
+        }
+
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+
+        let x0 = OW, x1 = 0, y0 = OH, y1 = 0;
+        for (const [x, y] of pool) {
+            if (x < x0) x0 = x; if (x > x1) x1 = x;
+            if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+        const tw = x1 - x0, th = y1 - y0;
+
+        const availW = W * 0.82;
+        const availH = H * 0.40;
+        const sc = Math.min(availW / tw, availH / th);
+
+        return pool.slice(0, count).map(([x, y]) => ({
+            wx: W / 2 + (x - x0 - tw / 2) * sc,
+            wy: H / 2 + (y - y0 - th / 2) * sc
+        }));
+    }
+
+    // ─────────────────────────────────────────
+    // Particles
+    const P = [];
+    for (let i = 0; i < NUM; i++) {
+        const [hx, hy, hz] = spherePts[i];
+        const R = Math.min(W, H) * 0.23;
+        P.push({
+            x: W / 2 + hx * R, y: H / 2 + hy * R,
+            hx, hy, hz,
+            tx: null, ty: null,
+            phase: Math.random() * Math.PI * 2,
+            spd: 0.5 + Math.random() * 0.7,
+            sz: 0.7 + Math.random() * 1.6,
+            color: palette[Math.floor(Math.random() * palette.length)],
+            prog: 0,
+            state: 'sphere' // sphere | morphing | text
+        });
+    }
+
+    let ry = 0, rx = .15, mRY = 0, mRX = 0, cRY = 0, cRX = 0;
+    let textMode = false, t = 0;
+
+    document.addEventListener('mousemove', e => {
+        if (textMode) return;
+        mRY = (e.clientX / W - .5) * .55;
+        mRX = (e.clientY / H - .5) * -.28;
+    });
+
+    function proj(nx, ny, nz) {
+        const cy = Math.cos(ry), sy = Math.sin(ry);
+        let x = nx * cy + nz * sy, z = -nx * sy + nz * cy;
+        const cx = Math.cos(rx), sx = Math.sin(rx);
+        const y2 = ny * cx - z * sx, z2 = ny * sx + z * cx;
+        const f = 2.2 / (2.2 + z2);
+        const R = Math.min(W, H) * 0.23;
+        return { sx: W / 2 + x * R * f, sy: H / 2 + y2 * R * f, sc: f };
+    }
+
+    function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 }
+
+    function draw(ts) {
+        requestAnimationFrame(draw);
+        t = ts * .001;
+        cRY += (mRY - cRY) * .05; cRX += (mRX - cRX) * .05;
+        ry = t * .16 + cRY; rx = .15 + cRX;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // bg glow
+        const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.min(W, H) * .38);
+        g.addColorStop(0, 'rgba(55,10,110,.18)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+        for (const p of P) {
+            let px, py, alpha;
+
+            if (p.state === 'sphere') {
+                const w = Math.sin(p.phase + t * p.spd) * .018;
+                const { sx, sy, sc } = proj(p.hx * (1 + w), p.hy * (1 + w), p.hz);
+                px = sx; py = sy;
+                alpha = (0.3 + 0.7 * Math.abs(Math.sin(p.phase + t))) * sc;
+
+            } else if (p.state === 'morphing') {
+                p.prog = Math.min(1, p.prog + 0.018);
+                if (p.prog < 0) { px = null; }
+                else {
+                    const e = ease(Math.max(0, p.prog));
+                    const { sx, sy } = proj(p.hx, p.hy, p.hz);
+                    px = sx + (p.tx - sx) * e;
+                    py = sy + (p.ty - sy) * e;
+                    p.x = px; p.y = py;
+                    alpha = 0.35 + 0.65 * Math.max(0, p.prog);
+                    if (p.prog >= 1) p.state = 'text';
+                }
+            } else {
+                px = p.x + Math.sin(p.phase + t * p.spd) * .9;
+                py = p.y + Math.cos(p.phase + t * p.spd * .9) * .9;
+                alpha = 0.55 + 0.45 * Math.abs(Math.sin(p.phase + t * .6));
+            }
+
+            if (!px || !py) continue;
+
+            const sz = p.sz * (0.9 + 0.12 * Math.sin(p.phase + t));
+            ctx.save();
+            ctx.globalAlpha = Math.min(1, alpha * .6);
+            const gr = ctx.createRadialGradient(px, py, 0, px, py, sz * 4);
+            gr.addColorStop(0, p.color); gr.addColorStop(1, 'transparent');
+            ctx.fillStyle = gr;
+            ctx.beginPath(); ctx.arc(px, py, sz * 4, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = Math.min(1, alpha);
+            ctx.fillStyle = p.color;
+            ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+    }
+    requestAnimationFrame(draw);
+
+    // ─────────────────────────────────────────
+    function generate() {
+        const word = document.getElementById('prompt').value.trim();
+        if (!word) { document.getElementById('prompt').focus(); return; }
+
+        const btn = document.getElementById('gen-btn');
+        btn.disabled = true; btn.textContent = 'Forming…';
+        textMode = true;
+
+        const targets = sampleText(word, NUM);
+
+        for (let i = 0; i < NUM; i++) {
+            const p = P[i];
+            if (i < targets.length) {
+                p.tx = targets[i].wx;
+                p.ty = targets[i].wy;
+                p.prog = -(i / NUM) * 0.45; // stagger
+                p.state = 'morphing';
+            } else {
+                p.state = 'sphere';
+            }
+        }
+
+        setTimeout(() => {
+            btn.disabled = false; btn.textContent = 'Generate';
+            document.getElementById('hint').classList.add('hidden');
+            document.getElementById('reset-btn').classList.add('show');
+        }, 1400);
+    }
+
+    function resetSphere() {
+        textMode = false; mRY = 0; mRX = 0;
+        const R = Math.min(W, H) * 0.23;
+        for (const p of P) {
+            p.state = 'sphere'; p.prog = 0; p.tx = null; p.ty = null;
+            p.x = W / 2 + p.hx * R; p.y = H / 2 + p.hy * R;
+        }
+        document.getElementById('prompt').value = '';
+        document.getElementById('hint').classList.remove('hidden');
+        document.getElementById('reset-btn').classList.remove('show');
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && document.activeElement.id === 'prompt') generate();
+        if (e.key === 'Escape') resetSphere();
     });
 </script>
 </body>
+
 </html>

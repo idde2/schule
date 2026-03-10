@@ -1,21 +1,19 @@
-.test {
-    display: inline-block;
-    padding: 12px 20px;
-    margin: auto auto;
-    top: 100px;
-    background-color: #00b894;
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: bold;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: background 0.3s ease;
-}
-
-.test2 {
-    top: 100px;
-    font-size: 20px;
-
-
+.bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(10,6,20,0.75);
+    border: 1px solid rgba(168,6,20,0.3);
+    border-radius: 60px;
+    padding: 6px 6px 6px 22px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+        0 8px 40px rgba(0,0,0,0.5),
+        0 0 50px rgba(107,33,212,0.1);
+    transition:
+        border-color 0.3s,
+        box-shadow 0.3s;
 
 }

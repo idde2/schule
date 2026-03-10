@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect, session, make_response, jsonify
+import bcrypt
+import requests
+from flask import Flask, render_template, request, redirect, session, make_response, jsonify, Response
 import csv
 import io
 import openpyxl
@@ -6,7 +8,7 @@ from datetime import datetime
 from flask_socketio import SocketIO
 from pyngrok import ngrok, conf
 import os
-from func import get_connection, set_config, get_conf, log, background_updater, register_socketio
+from func import get_connection, set_config, get_conf, log, background_updater, register_socketio, test_admin
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode="threading")
@@ -14,6 +16,7 @@ app.secret_key = "supersecretkey2025"
 app.config['SECRET_KEY'] = 'secret'
 register_socketio(socketio)
 
+APACHE_BASE = "http://localhost/phpmyadmin"
 
 @app.route("/")
 def index():
@@ -75,7 +78,7 @@ def eingabe():
         conn.commit()
         new_id = cursor.lastrowid
 
-        log(name, wert, "eingabe")
+        log(session["user"],name, wert, "eingabe")
 
         cursor.execute("SELECT name, wert FROM daten ORDER BY wert DESC")
         rang = cursor.fetchall()
@@ -167,7 +170,7 @@ def delete_all():
     cursor.execute("ALTER TABLE verlauf AUTO_INCREMENT = 1")
     conn.commit()
 
-    log("-", 0.0, "delete all")
+    log(session["user"],"-", 0.0, "delete all")
 
     cursor.close()
     conn.close()
@@ -180,35 +183,88 @@ def delete_all():
 
 
 @app.before_request
-def protect_admin():
-    if request.path.startswith("/admin"):
-        if session.get("admin_ok") != True:
-            log("-", 0.0, "Admin pin")
+def protect():
+    path = request.path
 
+    if path.startswith("/static"):
+        return
+
+    if path.startswith("/api"):
+        return
+
+    if path.startswith("/login"):
+        return
+
+    if path.startswith("/pin"):
+        return
+
+    if path.startswith("/admin"):
+        if session.get("admin_ok") != True:
+            log(session["user"],"-", 0.0, "Admin pin")
             return redirect("/pin")
 
+    if session.get("main") != True:
+        return redirect("/login")
 
-@app.before_request
-def protect_main():
-    if not request.path.startswith("/login") and not request.path.startswith("/api"):
-        if session.get("main") != True:
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        name = str(request.form.get("username"))
+        password = str(request.form.get("password"))
+        admin = 1 if request.form.get("admin") == "1" else 0
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = "SELECT id FROM users WHERE username = %s"
+        cursor.execute(sql, (name,))
+        user = cursor.fetchone()
+        if not user:
+            password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+            sql = "INSERT INTO users (username, password_hash, admin) VALUES (%s, %s,%s)"
+            values = (name, password_hash,admin)
+
+            cursor.execute(sql, values)
+            conn.commit()
             return redirect("/login")
-
+        else:
+            return render_template("register.html", daten="Benutzername existiert bereits")
+    return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        if request.form.get("login") == get_conf("login"):
-            session["main"] = True
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
 
-            log("-", 0.0, "Aufruf ok")
+        username = request.form.get("username")
+        password = request.form.get("password")
 
-            return redirect("/")
+        sql = "SELECT * FROM users WHERE username = %s"
+        cursor.execute(sql, (username,))
+        user = cursor.fetchone()
+
+        if user:
+            stored_hash = user["password_hash"].encode("utf-8")
+
+            if bcrypt.checkpw(password.encode("utf-8"), stored_hash):
+                session["main"] = True
+                log(username,"-", 0.0, "Login ok")
+                session["admin_ok"] = True if test_admin(username) == 1 else False
+                session["user"] = username
+                return redirect("/")
+            else:
+                log(username,password, 0.0, "Passwort falsch")
+                return render_template("login.html", daten="falsches password")
         else:
-            log("-", 0.0, "Aufruf falsch")
-            return render_template("login.html", error=True)
-    if session.get("main") != True:
-        return render_template("login.html")
+            log(username,"-", 0.0, "Nutzer nicht gefunden")
+            return render_template("login.html", daten="falscher benutzername")
+
+    if session.get("main") == True:
+        return redirect("/")
+
+    return render_template("login.html")
+
 
 
 @app.route("/pin", methods=["GET", "POST"])
@@ -217,11 +273,11 @@ def pin():
         if request.form.get("pin") == get_conf("pin"):
             session["admin_ok"] = True
 
-            log("-", 0.0, "Admin ok")
+            log(session["user"],"-", 0.0, "Admin ok")
 
             return redirect("/admin")
         else:
-            log("-", float(request.form.get("pin")), "Admin falsch")
+            log(session["user"],"-", float(request.form.get("pin")), "Admin falsch")
         return render_template("pin.html", error=True)
     return render_template("pin.html")
 
@@ -229,7 +285,7 @@ def pin():
 @app.route("/admin/logout")
 def admin_logout():
     session["admin_ok"] = False
-    log("", 0.0, "Admin logout")
+    log(session["user"],"", 0.0, "Admin logout")
     return redirect("/admin")
 
 
@@ -237,7 +293,8 @@ def admin_logout():
 def logout():
     session["main"] = False
     session["admin_ok"] = False
-    log("", 0.0, "logout")
+    log(session["user"],"", 0.0, "logout")
+    session.pop("user", None)
     return redirect("/login")
 
 
@@ -330,7 +387,7 @@ def profil(teilnehmer_id):
 def admin_log():
     conn = get_connection()
     c = conn.cursor()
-    c.execute("SELECT ip, name, wert, action, timestamp FROM log ORDER BY timestamp DESC")
+    c.execute("SELECT ip, username, name, wert, action, timestamp FROM log ORDER BY timestamp DESC")
     logs = c.fetchall()
     conn.close()
 
@@ -399,6 +456,31 @@ def set_variable(name):
     return jsonify({"status": "ok", name: value})
 
 
+@app.route("/phpmyadmin", defaults={"path": ""}, methods=["GET", "POST"])
+@app.route("/phpmyadmin/", defaults={"path": ""}, methods=["GET", "POST"])
+@app.route("/phpmyadmin/<path:path>", methods=["GET", "POST"])
+def proxy(path):
+    url = f"{APACHE_BASE}/{path}"
+
+    headers = dict(request.headers)
+    headers["Host"] = "localhost"
+
+    resp = requests.request(
+        method=request.method,
+        url=url,
+        params=request.args,
+        data=request.form,
+        cookies=request.cookies,
+        headers=headers,
+        allow_redirects=False
+    )
+
+    excluded = ["content-encoding", "transfer-encoding", "connection"]
+    headers_out = [(k, v) for k, v in resp.headers.items() if k.lower() not in excluded]
+
+    return Response(resp.content, resp.status_code, headers_out)
+
+
 
 
 
@@ -410,7 +492,7 @@ if __name__ == "__main__":
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         ngrok.kill()
         if get_conf("ngrok") == "False":
-            num = input("number:")
+            num = "0"
             if num == "1":
                     conf.get_default().auth_token = "37Rwi5yWodWiErSDF3zrKEiam7x_3jaqt3R8w28zvNKNEt3Pt"
                     public_url = ngrok.connect(5000, "http")

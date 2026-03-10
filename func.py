@@ -1,7 +1,7 @@
 import mysql.connector
 import configparser
 import os
-from flask import request
+from flask import request, session
 
 socketio = None
 def register_socketio(sio):
@@ -45,17 +45,25 @@ def get_conf(option, fallback=None):
     return config["DEFAULT"].get(option, fallback)
 
 
-def log(name, wert, action):
+def log(username, name, wert, action):
     conn = get_connection()
     cursor = conn.cursor()
-    user_ip = request.remote_addr
+
+    try:
+        user_ip = request.remote_addr
+    except Exception:
+        user_ip = "GUI"
+
+
     cursor.execute(
-        "INSERT INTO log (ip, name, wert, action) VALUES (%s, %s, %s, %s)",
-        (user_ip, name, wert, action)
+        "INSERT INTO log (ip,username, name, wert, action) VALUES (%s,%s, %s, %s, %s)",
+        (user_ip,username, name, wert, action)
     )
+
     conn.commit()
     cursor.close()
     conn.close()
+
 
 
 
@@ -102,3 +110,13 @@ def background_updater():
         })
 
         socketio.sleep(1)
+
+
+def test_admin(username):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT admin FROM users WHERE username = %s", (username,))
+    result = cursor.fetchone()
+
+    return result["admin"] if result else 0

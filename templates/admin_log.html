@@ -28,10 +28,11 @@
 </select>
 
 <div class="card-list">
-    {% for ip, name, wert, action, ts in logs %}
+    {% for ip, username, name, wert, action, ts in logs %}
     <div class="card">
         <div><strong>{{ ts }}</strong></div>
         <div>IP: {{ ip }}</div>
+        <div>Benutzer: {{ username }}</div>
         <div>Name: {{ name }}</div>
         <div>Wert: {{ wert }}</div>
         <div class="action">Aktion: {{ action }}</div>

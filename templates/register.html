@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Register</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/login.css">
@@ -13,10 +13,9 @@
 <div class="bg-overlay"></div>
 <div class="main-container">
     <div class="auth-card">
-        <!--            <p class="desc">Enter your credentials to access your account</p>  -->
+        <p class="desc">gebe deine daten ein</p>
 
         <p class="error">{{ daten }}</p>
-
         <form method="POST">
             <div class="input-wrapper">
                 <i class="fa-solid fa-envelope"></i>
@@ -27,8 +26,18 @@
                 <i class="fa-solid fa-shield-halved"></i>
                 <input type="password" name="password" maxlength="4" required>
             </div>
+            <div class="input-wrapper">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="admin" value="1">
+                    <span>Admin</span>
+                </label>
 
-            <button type="submit" class="submit-btn">Login</button>
+
+
+
+            </div>
+
+            <button type="submit" class="submit-btn">Register</button>
         </form>
 
         <!--            <div class="card-footer">-->
