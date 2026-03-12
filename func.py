@@ -120,3 +120,5 @@ def test_admin(username):
     result = cursor.fetchone()
 
     return result["admin"] if result else 0
+
+

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Register</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/login.css">
@@ -13,11 +13,25 @@
 <div class="bg-overlay"></div>
 <div class="main-container">
     <div class="auth-card">
-        <!--            <p class="desc">Enter your credentials to access your account</p>  -->
+        <p class="desc">gebe deine daten ein</p>
 
         <p class="error">{{ daten }}</p>
 
+        <form id="regForm">
+            <div class="input-wrapper-email">
+                <i class="fa-solid fa-envelope"></i>
+                <input type="email" id="email" name="email" placeholder="email" required>
+                <button class="email" type="submit">check</button>
+            </div>
+        </form>
+
         <form method="POST">
+
+            <div class="input-wrapper">
+                <i class="fa-solid fa-envelope"></i>
+                <input type="text" name="token" placeholder="123456" maxlength="6" required>
+            </div>
+
             <div class="input-wrapper">
                 <i class="fa-solid fa-envelope"></i>
                 <input type="text" name="username" placeholder="Username" required>
@@ -28,17 +42,21 @@
                 <input type="password" name="password" placeholder="****" maxlength="4" required>
             </div>
 
-            <button type="submit" class="submit-btn">Login</button>
+            <div class="input-wrapper">
+                <label class="checkbox-container">
+                    <input type="checkbox" name="admin" value="1">
+                    <span class="checkmark"></span>Admin
+                </label>
+            </div>
+
+            <button type="submit" class="submit-btn">Register</button>
         </form>
 
-        <!--            <div class="card-footer">-->
-        <!--                Don't have an account? <a href="#">Register</a>-->
-        <!--            </div>-->
     </div>
 </div>
 
 
-<script src="/static/js/login.js"> </script>
+<script src="/static/js/register.js"> </script>
 <script src="/static/js/main.js"> </script>
 </body>
 </html>

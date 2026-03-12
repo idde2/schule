@@ -1,12 +1,12 @@
 import io
 import time
 import threading
-from flask import Flask, Response, request, render_template_string
+from flask import Flask, Response, request, render_template_string, Blueprint
 import mss
 from PIL import Image
 import pyautogui
 
-bp2 = Flask(__name__)
+bp2 = Blueprint("bp2", __name__)
 lock = threading.Lock()
 
 html = """
@@ -29,20 +29,20 @@ Monitor:
 <option value="3">3</option>
 </select>
 </div>
-<img id="screen" src="/stream?mon=1">
+<img id="screen" src="/remotedesktop/stream?mon=1">
 <script>
 const img = document.getElementById('screen');
 const sel = document.getElementById('mon');
 
 sel.addEventListener('change', () => {
-    img.src = "/stream?mon=" + sel.value + "&t=" + Date.now();
+    img.src = "/remotedesktop/stream?mon=" + sel.value + "&t=" + Date.now();
 });
 
 img.addEventListener('click', e => {
     const r = img.getBoundingClientRect();
     const x = (e.clientX - r.left) / r.width;
     const y = (e.clientY - r.top) / r.height;
-    fetch('/mouse', {
+    fetch('/remotedesktop/mouse', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({x:x,y:y,mon:sel.value})
@@ -50,7 +50,7 @@ img.addEventListener('click', e => {
 });
 
 window.addEventListener('keydown', e => {
-    fetch('/key', {
+    fetch('/remotedesktop/key', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({k:e.key})
@@ -74,16 +74,16 @@ def stream_gen(mon):
             yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
             time.sleep(0.05)
 
-@bp2.route("/")
+@bp2.route("/remotedesktop/")
 def index():
     return render_template_string(html)
 
-@bp2.route("/stream")
+@bp2.route("/remotedesktop/stream")
 def stream():
     mon = request.args.get("mon", "1")
     return Response(stream_gen(mon), mimetype="multipart/x-mixed-replace; boundary=frame")
 
-@bp2.route("/mouse", methods=["POST"])
+@bp2.route("/remotedesktop/mouse", methods=["POST"])
 def mouse():
     d = request.get_json()
     mon = int(d["mon"])
@@ -97,7 +97,7 @@ def mouse():
         pyautogui.click(absx, absy)
     return "ok"
 
-@bp2.route("/key", methods=["POST"])
+@bp2.route("/remotedesktop/key", methods=["POST"])
 def key():
     k = request.get_json()["k"]
     m = {
@@ -111,5 +111,3 @@ def key():
         try: pyautogui.press(k)
         except: pass
     return "ok"
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)

@@ -2,15 +2,22 @@ import bcrypt
 import requests
 from flask import Flask, render_template, request, redirect, session, make_response, jsonify, Response
 import csv
-import io
+import subprocess
 import openpyxl
 from datetime import datetime
 from flask_socketio import SocketIO
 from pyngrok import ngrok, conf
 import os
+
+
 from func import get_connection, set_config, get_conf, log, background_updater, register_socketio, test_admin
+from login import bp
+from remote_webdesk import *
 
 app = Flask(__name__)
+app.register_blueprint(bp)
+#app.register_blueprint(bp, url_prefix="/admin")
+app.register_blueprint(bp2)
 socketio = SocketIO(app, async_mode="threading")
 app.secret_key = "supersecretkey2025"
 app.config['SECRET_KEY'] = 'secret'
@@ -181,7 +188,7 @@ def delete_all():
 
     return redirect("/admin")
 
-
+#-----------------------------------------------------------------------------------------------------------------------------------------------before request--------------------------------------------------------------------------------
 @app.before_request
 def protect():
     path = request.path
@@ -198,7 +205,7 @@ def protect():
     if path.startswith("/pin"):
         return
 
-    if path.startswith("/admin"):
+    if path.startswith("/admin") or path.startswith("/remotedesktop") or path.startswith("/phpmyadmin") or path.startswith("/register") or path.startswith("/register2"):
         if session.get("admin_ok") != True:
             log(session["user"],"-", 0.0, "Admin pin")
             return redirect("/pin")
@@ -488,7 +495,7 @@ def proxy(path):
 if __name__ == "__main__":
 
     set_config()
-
+    print(subprocess.Popen(["cmd.exe","/c", "httpd"],creationflags=subprocess.CREATE_NO_WINDOW))
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         ngrok.kill()
         if get_conf("ngrok") == "False":

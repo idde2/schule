@@ -119,7 +119,7 @@ body {
     transition: 0.3s;
 }
 
-.submit-btn:hover {
+.submit-btn:hover, .email:hover {
     filter: brightness(1.2);
     box-shadow: 0 10px 20px rgba(138, 43, 226, 0.3);
 }
@@ -137,7 +137,7 @@ body {
 }
 
 .error {
-    color: red;
+    color: #7a0606;
     font-size: 30px;
     margin-top: 5px;
     margin-bottom: 10px;
@@ -153,3 +153,130 @@ body {
     white-space: nowrap;
 }
 
+.email {
+    position: absolute;
+    width: 35%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--primary), #5f27cd);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.input-wrapper-email {
+    position: relative;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.input-wrapper-email i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-light);
+    font-size: 1.1rem;
+}
+
+.input-wrapper-email input {
+    width: 100%;
+    padding: 14px 90px 14px 40px; /* Platz für Icon + Button */
+    background: var(--input-fill);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-wrapper-email input:focus {
+    border-color: var(--primary);
+    background: rgba(138, 43, 226, 0.1);
+}
+
+.input-wrapper-email button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 8px 14px;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.input-wrapper-email button:hover {
+    background: var(--primary);
+}
+
+
+
+
+
+
+
+/* Checkbox-Container */
+.checkbox-container {
+    position: relative;
+    left: 40%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-gray);
+    user-select: none;
+}
+
+/* Original-Checkbox verstecken */
+.checkbox-container input {
+    display: none;
+}
+
+/* Custom Checkbox */
+.checkbox-container .checkmark {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: var(--input-fill);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.25s;
+    position: relative;
+}
+
+/* Hover Glow */
+.checkbox-container:hover .checkmark {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 8px rgba(138, 43, 226, 0.4);
+}
+
+/* Haken (animiert) */
+.checkbox-container .checkmark::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    transform: scale(0);
+    transition: 0.25s ease;
+}
+
+/* Aktiviert */
+.checkbox-container input:checked + .checkmark::after {
+    transform: scale(1);
+}
+
+/* Glow beim Aktivieren */
+.checkbox-container input:checked + .checkmark {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 12px rgba(138, 43, 226, 0.6);
+}
