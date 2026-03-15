@@ -9,31 +9,12 @@
 
 <body>
 
-<div id="reconnect" class="reconnect" >Verbindung wird wiederhergestellt…</div>
-
 <div class="box">
-    <h2 style="font-size: 30px; color: red;  line-height: 0.9;">Dein account hat keine berechtigung auf den admin bereich</h2>
+    <h2 style="font-size: 30px; color: red;  line-height: 0.9;">Dein Account hat keine Berechtigung auf den Adminbereich</h2>
 </div>
 
-<div id="sidebar" class="sidebar">
-    <p></p>
-    <a href="/">Live‑Daten</a>
-    <a href="/tabelle">Tabelle</a>
-    <a href="/rang">Rang</a>
-    <a href="/eingabe">Eingabe</a>
-    <a href="/admin" style="font-weight: bold;">Admin</a>
-    <button class="toggle-btn2" id="themeToggle">🌙</button>
-    <a class="logout" href="/logout">
-        <img class="logout" src="{{ url_for('static', filename='images/logout.png') }}" width="24" height="24">
-    </a>
-</div>
+{% include "sidebar.html" %}
 
-<a class="I" href="/info">
-    <img class="I" src="{{ url_for('static', filename='images/I.png') }}" width="24" height="24">
-</a>
-
-
-<button id="toggleBtn" class="toggle-btn">☰</button>
 
 <script src="/static/js/pin.js"> </script>
 <script src="/static/js/main.js"> </script>

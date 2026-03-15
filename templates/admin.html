@@ -11,30 +11,10 @@
 
 <h1 style="margin-top: 20px;">Admin – Einträge verwalten</h1>
 
-<div id="sidebar" class="sidebar">
-    <p></p>
-    <a href="/">Live‑Daten</a>
-    <a href="/tabelle">Tabelle</a>
-    <a href="/rang">Rang</a>
-    <a href="/eingabe">Eingabe</a>
-    <a href="/admin" style="font-weight: bold;">Admin</a>
-    <button class="toggle-btn2" id="themeToggle">🌙</button>
-    <a class="logout" href="/logout">
-        <img class="logout" src="{{ url_for('static', filename='images/logout.png') }}" width="24" height="24">
-    </a>
-</div>
-
-<div id="reconnect" class="reconnect" >Verbindung wird wiederhergestellt…</div>
-
-<button id="toggleBtn" class="toggle-btn">☰</button>
+{% include "sidebar.html" %}
 
 <div id="mobileCards" class="card-list"></div>
-
 <input id="search" placeholder="Suchen…" class="suche">
-
-<a class="I" href="/info">
-    <img class="I" src="{{ url_for('static', filename='images/I.png') }}" width="24" height="24">
-</a>
 
 
 <table>

@@ -9,26 +9,7 @@
 
 <body>
 
-<div id="reconnect" class="reconnect" >Verbindung wird wiederhergestellt…</div>
-
-<div id="sidebar" class="sidebar">
-    <p></p>
-    <a href="/">Live‑Daten</a>
-    <a href="/tabelle">Tabelle</a>
-    <a href="/rang">Rang</a>
-    <a href="/eingabe" style="font-weight: bold;">Eingabe</a>
-    <a href="/admin">Admin</a>
-    <button class="toggle-btn2" id="themeToggle">🌙</button>
-    <a class="logout" href="/logout">
-        <img class="logout" src="{{ url_for('static', filename='images/logout.png') }}" width="24" height="24">
-    </a>
-</div>
-
-<a class="I" href="/info">
-    <img class="I" src="{{ url_for('static', filename='images/I.png') }}" width="24" height="24">
-</a>
-
-<button id="toggleBtn" class="toggle-btn">☰</button>
+{% include "sidebar.html" %}
 
 <div class="form-container">
     <h1>Neue Werte eingeben</h1>
