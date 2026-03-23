@@ -8,10 +8,10 @@ import smtplib
 from email.mime.text import MIMEText
 import keyring
 
-bp = Blueprint("bp", __name__)
+login = Blueprint("login", __name__)
 users = {}
 
-@bp.route("/register", methods=["GET", "POST"])
+@login.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         name = str(request.form.get("username"))
@@ -37,7 +37,7 @@ def register():
             return render_template("register.html", daten="Benutzername existiert bereits")
     return render_template("register.html")
 
-@bp.route("/register2", methods=["GET", "POST"])
+@login.route("/register2", methods=["GET", "POST"])
 def register2():
     global users
 
@@ -86,7 +86,7 @@ def register2():
     return render_template("register2.html")
 
 
-@bp.route("/register2/<email>", methods=["GET", "POST"])
+@login.route("/register2/<email>", methods=["GET", "POST"])
 def register_token(email):
     global users
     users[email] = random.randint(100000, 999999)

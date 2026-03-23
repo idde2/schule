@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>cmd line</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/cmd.css">
+</head>
+
+<body>
+{% include "sidebar.html" %}
+
+<h1 class="h1">cmd line</h1>
+
+<div class="cmd-container">
+    <div class="line">
+        <label class="path">{{path}}</label>
+        <input class="cmd-input" type="text" name="cmd" id="cmd">
+    </div>
+
+    <div class="cmd" id="cmd_log">{{daten}}</div>
+
+</div>
+<script>
+    const daten = {{ daten | tojson | safe }};
+</script>
+<script src="/static/js/main.js"> </script>
+<script src="/static/js/cmd.js"> </script>
+
+
+</body>
+</html>

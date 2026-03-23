@@ -15,7 +15,8 @@ document.getElementById("toggleBtn").onclick = () =>
     sidebar.classList.toggle("open");
 
 
-
+const logoutImg = document.getElementById("logout");
+const i = document.getElementById("i");
 
 function applyTheme(theme) {
     document.body.classList.toggle("light", theme === "light");
@@ -29,14 +30,21 @@ function applyTheme(theme) {
     const input = document.querySelector(".input");
     if (input) input.classList.toggle("light", theme === "light")
 
+    const side = document.querySelector(".sidebar");
+    if (side) side.classList.toggle("light", theme === "light")
+
     document.getElementById("themeToggle").textContent =
-        theme === "light" ? "☀️" : "🌙";
+        theme === "light" ? "☀️️️️️️" : "🌙";
+
+    logoutImg.src = theme === "light" ? logoutImg.dataset.dark : logoutImg.dataset.light;
+    i.src = theme === "light" ? i.dataset.dark : i.dataset.light;
 }
 
 let savedTheme = localStorage.getItem("theme") ||
     (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
 
 applyTheme(savedTheme);
+
 
 document.getElementById("themeToggle").onclick = () => {
     const btn = document.getElementById("themeToggle");
@@ -45,6 +53,7 @@ document.getElementById("themeToggle").onclick = () => {
     const newTheme = document.body.classList.contains("light") ? "dark" : "light";
     applyTheme(newTheme);
     localStorage.setItem("theme", newTheme);
+
 };
 
 

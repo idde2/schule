@@ -4,8 +4,8 @@
     --card-bg: #444;
     --sidebar-bg: #222;
     --row-bg: #444;
-    --input-bg: #fff;
-    --input-text: #000;
+    --input-bg: #666;
+    --input-text: #ff;
 }
 
 body.light {
@@ -14,8 +14,8 @@ body.light {
     --card-bg: #ffffff;
     --sidebar-bg: #e0e0e0;
     --row-bg: #f0f0f0;
-    --input-bg: #ffffff;
-    --input-text: #000000;
+    --input-bg: #dddddd;
+    --input-text: #222;
 }
 
 
@@ -30,11 +30,11 @@ body {
 
 .sidebar {
     position: fixed;
-    top: 0;
+    top: 10px;
     left: 0;
     width: 240px;
     height: 100%;
-    background-color: #222;
+    color: var(--text);
     padding-top: 20px;
     transform: translateX(-240px);
     transition: transform 0.3s ease;
@@ -45,32 +45,29 @@ body {
     transform: translateX(0);
 }
 
+
 .sidebar a, .sidebar button {
     display: block;
     padding: 15px 20px;
-    color: white;
+    color: var(--text);
     text-decoration: none;
     font-size: 22px;
     background: none;
     border: none;
     text-align: left;
     cursor: pointer;
+    opacity: 1;
 }
 
 .sidebar a:hover {
     text-decoration: underline;
-    background-color: #353535;
-}
-.sidebar button:hover {
-    background-color: #353535;
-
 }
 
 .toggle-btn {
     position: fixed;
-    top: 10px;
+    top: 7px;
     left: 20px;
-    background-color: var(--bg);
+    background: none;
     color: var(--text);
     border: none;
     padding: 4px 4px;
@@ -79,7 +76,6 @@ body {
     border-radius: 6px;
     z-index: 1100;
 }
-
 .toggle-btn2 {
     position: fixed;
     bottom: 35px;
@@ -93,6 +89,9 @@ body {
     border-radius: 4px;
     z-index: 1100;
     text-decoration: none;
+}
+.toggle-btn2:hover {
+    font-size: 50px;
 }
 
 #themeToggle {
@@ -113,8 +112,8 @@ body {
     padding:10px;
     font-size:20px;
     margin-bottom:10px;
-    color: White;
-    background-color: #474747;
+    color: var(--input-text);
+    background-color: var(--input-bg);
 }
 .suche.light {
     padding:10px;
@@ -135,7 +134,6 @@ body {
     cursor: pointer;
     border-radius: 4px;
     z-index: 1100;
-    background-color: #3B3B3B
 }
 
 .container.light {

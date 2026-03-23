@@ -1,0 +1,67 @@
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cmd {
+    text-align: left;
+    background: black;
+    padding: 10px;
+    border-radius: 5px;
+    height: 300px;
+    overflow-y: scroll;
+    font-family: monospace;
+    font-size: 14px;
+    color: green;
+}
+.cmd-container {
+    width: 70%;
+    position: absolute;
+    justify-content: center;
+}
+.cmd-input {
+    position: relative;
+    flex: 1;
+    color: #0f0;
+    text-align: left;
+    background: #111;
+    padding: 10px;
+    height: 20px;
+    font-family: monospace;
+    font-size: 14px;
+    outline: none;
+    z-index: 100
+    border-left: 1px solid #111;
+    border-radius-left: 1px;
+}
+
+.line {
+    display: flex;
+    align-items: center;
+    font-family: monospace;
+    color: #0f0;
+}
+
+.h1 {
+    position: absolute;
+    top: 10px;
+}
+.path {
+    position: relative;
+    flex: 1;
+    color: #0f0;
+    text-align: left;
+    background: #111;
+    padding: 10px;
+    height: 20px;
+    font-family: monospace;
+    font-size: 14px;
+    outline: none;
+    left : 0%;
+    border:none
+    border-left: 1px solid #111;
+    border-radius-left: 1px;
+}

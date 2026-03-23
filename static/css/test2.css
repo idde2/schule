@@ -1,0 +1,35 @@
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.test {
+    font-size: 50px;
+    width: 100px;
+    height: 100px;
+    align-content: center;
+    position: fixed;
+    border: red solid 5px;
+    border-radius: 50%;
+    padding: 10px 10px 10px 10px;
+    margin: 10px 10px 10px 10px;
+    animation: back 5s infinite;
+    z-index: 100;
+}
+@keyframes back {
+    0% {
+        border-radius: 0%;
+        transform: rotate(0deg);
+    }
+    50% {
+        border-radius: 50%;
+        transform: rotate(360deg);
+    }
+    100% {
+        border-radius: 0%;
+        transform: rotate(0deg);
+    }
+}

@@ -11,19 +11,55 @@ import os
 
 
 from func import get_connection, set_config, get_conf, log, background_updater, register_socketio, test_admin
-from login import bp
+from login import login
+from commandline import cmd_web
 from remote_webdesk import *
+from api import api, register_api_socketio
 
 app = Flask(__name__)
-app.register_blueprint(bp)
-#app.register_blueprint(bp, url_prefix="/admin")
-app.register_blueprint(bp2)
+
+app.register_blueprint(login)
+app.register_blueprint(cmd_web, url_prefix="/cmd")
+app.register_blueprint(rdp, url_prefix="/remotedesktop")
+app.register_blueprint(api, url_prefix="/api")
+
 socketio = SocketIO(app, async_mode="threading")
 app.secret_key = "supersecretkey2025"
 app.config['SECRET_KEY'] = 'secret'
 register_socketio(socketio)
+register_api_socketio(socketio)
 
 APACHE_BASE = "http://localhost/phpmyadmin"
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------before request--------------------------------------------------------------------------------
+@app.before_request
+def protect():
+    path = request.path
+
+    if path.startswith("/static"):
+        return
+
+    if path.startswith("/api"):
+        return
+
+    if path.startswith("/login"):
+        return
+
+    if path.startswith("/pin"):
+        return
+
+    if path.startswith("/admin") or path.startswith("/remotedesktop") or path.startswith("/phpmyadmin") or path.startswith("/register") or path.startswith("/register2") or path.startswith("/cmd"):
+        if session.get("admin_ok") != True:
+            log(session["user"],"-", 0.0, "login failed")
+            return redirect("/pin")
+
+    if session.get("main") != True:
+        return redirect("/login")
+
+
+
 
 @app.route("/")
 def index():
@@ -71,6 +107,9 @@ def eingabe():
     if request.method == "POST":
         name = request.form["name"].strip()
         wert = float(request.form["wert"])
+
+        if wert > 100000000 or wert < 0.001:
+            return jsonify({"success": False, "error": "wert_out_of_range"})
 
         conn = get_connection()
         cursor = conn.cursor()
@@ -131,7 +170,7 @@ def delete(id):
     cursor.execute("DELETE FROM daten WHERE id = %s", (id,))
     conn.commit()
 
-    log(id, 0.0, "delete")
+    log(session["user"], id, 0.0, "delete")
     cursor.close()
     conn.close()
     return redirect("/admin")
@@ -152,7 +191,7 @@ def edit(id):
         )
         conn.commit()
 
-        log(name, wert, "edit")
+        log(session["user"],name, wert, "edit")
 
         cursor.close()
         conn.close()
@@ -188,30 +227,7 @@ def delete_all():
 
     return redirect("/admin")
 
-#-----------------------------------------------------------------------------------------------------------------------------------------------before request--------------------------------------------------------------------------------
-@app.before_request
-def protect():
-    path = request.path
 
-    if path.startswith("/static"):
-        return
-
-    if path.startswith("/api"):
-        return
-
-    if path.startswith("/login"):
-        return
-
-    if path.startswith("/pin"):
-        return
-
-    if path.startswith("/admin") or path.startswith("/remotedesktop") or path.startswith("/phpmyadmin") or path.startswith("/register") or path.startswith("/register2"):
-        if session.get("admin_ok") != True:
-            log(session["user"],"-", 0.0, "Admin pin")
-            return redirect("/pin")
-
-    if session.get("main") != True:
-        return redirect("/login")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -274,18 +290,8 @@ def login():
 
 
 
-@app.route("/pin", methods=["GET", "POST"])
+@app.route("/pin")
 def pin():
-    if request.method == "POST":
-        if request.form.get("pin") == get_conf("pin"):
-            session["admin_ok"] = True
-
-            log(session["user"],"-", 0.0, "Admin ok")
-
-            return redirect("/admin")
-        else:
-            log(session["user"],"-", float(request.form.get("pin")), "Admin falsch")
-        return render_template("pin.html", error=True)
     return render_template("pin.html")
 
 
@@ -355,40 +361,22 @@ def export_excel():
     return response
 
 
-@app.route("/profile")
-def profile_list():
+
+@app.route("/profil")
+def profil():
     conn = get_connection()
     c = conn.cursor()
-    c.execute("SELECT id, name, wert FROM daten ORDER BY name ASC")
-    daten = c.fetchall()
-    conn.close()
+    username = session["user"]
+    admin = test_admin(username)
+    c.execute("SELECT email FROM users WHERE username = %s", (username,))
+    email = c.fetchone()
+    email = email[0] if email else "Keine Email"
+    daten = [username, email, admin]
 
-    return render_template("profile_list.html", daten=daten)
-
-
-@app.route("/profil/<int:teilnehmer_id>")
-def profil(teilnehmer_id):
-    conn = get_connection()
-    c = conn.cursor()
-
-    c.execute("SELECT id, name, wert FROM daten WHERE id = %s", (teilnehmer_id,))
-    teilnehmer = c.fetchone()
-
-    if not teilnehmer:
-        conn.close()
-        return "Teilnehmer nicht gefunden", 404
-
-    c.execute("""
-        SELECT wert, timestamp 
-        FROM verlauf 
-        WHERE teilnehmer_id = %s 
-        ORDER BY timestamp DESC
-    """, (teilnehmer_id,))
-    verlauf = c.fetchall()
 
     conn.close()
 
-    return render_template("profil.html", teilnehmer=teilnehmer, verlauf=verlauf)
+    return render_template("profil.html", daten=daten)
 
 @app.route("/admin/log")
 def admin_log():
@@ -420,47 +408,15 @@ def info():
 @app.route("/test")
 def test():
     return render_template("test.html")
+@app.route("/test2")
+def test2():
+    return render_template("test2.html")
 
 @app.route("/turnier")
 def turnier():
     return render_template("turnier.html")
 
 
-
-
-
-settings = {
-    "update": False
-}
-@app.get("/api")
-def get_settings():
-    return jsonify(settings)
-@app.post("/api")
-def update_settings():
-    data = {}
-
-    if request.args:
-        data.update(request.args)
-
-    if request.json:
-        data.update(request.json)
-
-    for key, value in data.items():
-        settings[key] = value
-
-    return jsonify({"status": "ok", "updated": data})
-
-
-
-@app.get("/api/var/<name>")
-def get_variable(name):
-    return jsonify({name: settings.get(name)})
-
-@app.post("/api/var/<name>")
-def set_variable(name):
-    value = request.json.get("value")
-    settings[name] = value
-    return jsonify({"status": "ok", name: value})
 
 
 @app.route("/phpmyadmin", defaults={"path": ""}, methods=["GET", "POST"])

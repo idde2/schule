@@ -6,7 +6,7 @@ import mss
 from PIL import Image
 import pyautogui
 
-bp2 = Blueprint("bp2", __name__)
+rdp = Blueprint("rdp", __name__)
 lock = threading.Lock()
 
 html = """
@@ -74,16 +74,16 @@ def stream_gen(mon):
             yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
             time.sleep(0.05)
 
-@bp2.route("/remotedesktop/")
+@rdp.route("/")
 def index():
     return render_template_string(html)
 
-@bp2.route("/remotedesktop/stream")
+@rdp.route("/stream")
 def stream():
     mon = request.args.get("mon", "1")
     return Response(stream_gen(mon), mimetype="multipart/x-mixed-replace; boundary=frame")
 
-@bp2.route("/remotedesktop/mouse", methods=["POST"])
+@rdp.route("/mouse", methods=["POST"])
 def mouse():
     d = request.get_json()
     mon = int(d["mon"])
@@ -97,7 +97,7 @@ def mouse():
         pyautogui.click(absx, absy)
     return "ok"
 
-@bp2.route("/remotedesktop/key", methods=["POST"])
+@rdp.route("/key", methods=["POST"])
 def key():
     k = request.get_json()["k"]
     m = {

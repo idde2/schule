@@ -2,62 +2,25 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>{{ teilnehmer[1] }}</title>
-
-    <style>
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: Arial, sans-serif;
-            margin: 0;
-            text-align: center;
-        }
-
-        .card {
-            background: var(--row-bg);
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px auto;
-            max-width: 500px;
-            font-size: 26px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-        }
-
-        .history {
-            max-width: 500px;
-            margin: auto;
-            text-align: left;
-            padding: 20px;
-        }
-
-        .entry {
-            background: var(--row-bg);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 20px;
-        }
-    </style>
+    <title>{{ daten[0] }}</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/profil.css">
 </head>
-
 <body>
+    <div class="main-container">
+        {% include "sidebar.html" %}
+        <div class="auth-card">
+            <div class="cont">
+                <p class="input-wrapper">Username: {{ daten[0] }}</p>
+            </div>
+            <div class="cont">
+                <p class="input-wrapper">Email: {{ daten[1] }}</p>
+            </div>
+            <div class="cont">
+                <p class="input-wrapper">hat Admin Rechte: {{ "ja" if daten[2] == 1 else "nein" }}</p>
+            </div>
 
-<h1>{{ teilnehmer[1] }}</h1>
-
-<div class="card">
-    Aktueller Wert:<br>
-    <strong>{{ teilnehmer[2] }}</strong>
-</div>
-
-<h2>Verlauf</h2>
-
-<div class="history">
-    {% for wert, ts in verlauf %}
-    <div class="entry">
-        {{ ts }} — <strong>{{ wert }}</strong>
+        </div>
     </div>
-    {% endfor %}
-</div>
-
 </body>
 </html>
