@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rangliste</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/rang.css">
+</head>
+
+<body>
+
+
+{% include "sidebar.html" %}
+
+
+<h1 style="font-size: 50px">Rangliste auswahl</h1>
+
+<div id="mobileCards" class="card-list"></div>
+
+{% include "select.html" %}
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script src="/static/js/rang_select.js"> </script>
+<script src="/static/js/main.js"> </script>
+</body>
+</html>

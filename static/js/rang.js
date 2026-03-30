@@ -1,5 +1,3 @@
-
-
 function konfetti() {
     for (let i = 0; i < 80; i++) {
         const d = document.createElement("div");
@@ -23,7 +21,14 @@ function konfetti() {
 const socket = io();
 let lastFirst = "";
 
+
+const currentTyp = document.getElementById("pageData")?.dataset.typ || "";
+
 socket.on("rang_update", (data) => {
+
+    // ❗ Nur Daten für die aktuelle Disziplin anzeigen
+    if (data.typ !== currentTyp) return;
+
     const tbody = document.getElementById("tbody");
     const mobile = document.getElementById("mobileCards");
 
@@ -67,7 +72,7 @@ socket.on("rang_update", (data) => {
     const sorted = [...data.daten].sort((a,b)=>b.wert - a.wert);
     const newOrder = sorted.map(r => rows.find(tr => tr.children[0].textContent === r.name));
 
-    if (sorted[0].name !== lastFirst) {
+    if (sorted[0] && sorted[0].name !== lastFirst) {
         konfetti();
         lastFirst = sorted[0].name;
     }
@@ -96,4 +101,3 @@ socket.on("rang_update", (data) => {
         }
     });
 });
-

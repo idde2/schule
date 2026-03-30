@@ -32,7 +32,9 @@ register_api_socketio(socketio)
 APACHE_BASE = "http://localhost/phpmyadmin"
 
 
-
+@app.route("/<var>",)
+def everything(var):
+    return render_template("not_ava.html")
 #-----------------------------------------------------------------------------------------------------------------------------------------------before request--------------------------------------------------------------------------------
 @app.before_request
 def protect():
@@ -87,23 +89,42 @@ def tabelle():
 
     return render_template("tabelle.html", daten=daten)
 
-
 @app.route("/rang")
-def rang():
+@app.route("/rang/")
+def _rang():
+    return render_template("rang_select.html")
+
+
+
+@app.route("/rang/<typ>")
+def rang(typ):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT name, wert FROM daten ORDER BY wert DESC")
+    cursor.execute(
+        "SELECT name, wert, typ FROM daten WHERE typ = %s ORDER BY wert DESC",
+        (typ,)
+    )
     daten = cursor.fetchall()
+
+    cursor.execute("SELECT DISTINCT typ FROM daten")
+    print(cursor.fetchall())
 
     cursor.close()
     conn.close()
 
-    return render_template("rang.html", daten=daten)
+
+    return render_template("rang.html", daten=daten, typ=typ)
 
 
-@app.route("/eingabe", methods=["GET", "POST"])
-def eingabe():
+
+@app.route("/eingabe/")
+@app.route("/eingabe")
+def _eingabe():
+    return redirect("/eingabe/sprint")
+
+@app.route("/eingabe/<typ>", methods=["GET", "POST"])
+def eingabe(typ):
     if request.method == "POST":
         name = request.form["name"].strip()
         wert = float(request.form["wert"])
@@ -120,7 +141,8 @@ def eingabe():
             conn.close()
             return jsonify({"success": False, "error": "name_exists"})
 
-        cursor.execute("INSERT INTO daten (name, wert) VALUES (%s, %s)", (name, wert))
+
+        cursor.execute("INSERT INTO daten (name, wert,typ) VALUES (%s, %s, %s)", (name, wert,typ))
         conn.commit()
         new_id = cursor.lastrowid
 
@@ -149,7 +171,7 @@ def eingabe():
     namen = [row[0] for row in cursor.fetchall()]
     conn.close()
 
-    return render_template("eingabe.html", namen=namen)
+    return render_template("eingabe.html", namen=namen, typ=typ)
 
 
 @app.route("/admin")

@@ -114,6 +114,7 @@ body {
     margin-bottom:10px;
     color: var(--input-text);
     background-color: var(--input-bg);
+    border-radius: 10px;
 }
 .suche.light {
     padding:10px;

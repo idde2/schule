@@ -14,7 +14,12 @@
 <div class="form-container">
     <h1>Neue Werte eingeben</h1>
 
+    {% include "select.html" %}
+
+
     <form method="POST">
+        <div id="pageData" data-typ="{{ typ }}"></div>
+
         <label for="name">Name:</label>
         <input id="name" name="name" type="text" required>
 

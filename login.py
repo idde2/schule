@@ -104,7 +104,7 @@ def send_mail(email,msg):
     USERNAME = "verifikation.eddi@gmail.com"
     DESTINATION = email
     APP_PASSWORD = keyring.get_password("gmail", "verifikation.eddi@gmail.com")
-
+    print(APP_PASSWORD)
 
     msg = MIMEText(msg, "plain")
     msg["Subject"] = "verification"

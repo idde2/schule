@@ -17,6 +17,7 @@
 <h1 style="font-size: 50px">Rangliste</h1>
 
 <div id="mobileCards" class="card-list"></div>
+<div id="pageData" data-typ="{{ typ }}"></div>
 
 
 <table>
@@ -27,17 +28,18 @@
         </tr>
     </thead>
     <tbody id="tbody">
-        {% for name, wert in daten %}
-        <tr class="
-            {% if loop.index == 1 %}top1{% endif %}
-            {% if loop.index == 2 %}top2{% endif %}
-            {% if loop.index == 3 %}top3{% endif %}
-        ">
-            <td>{{ name }}</td>
-            <td>{{ wert }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
+    {% for name, wert, eintrag_typ in daten %}
+    <tr class="
+        {% if loop.index == 1 %}top1{% endif %}
+        {% if loop.index == 2 %}top2{% endif %}
+        {% if loop.index == 3 %}top3{% endif %}
+    ">
+        <td>{{ name }}</td>
+        <td>{{ wert }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+
 </table>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
