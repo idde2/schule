@@ -1,96 +1,91 @@
-import multiprocessing
 import queue
 import json
 import sounddevice as sd
 from vosk import Model, KaldiRecognizer
+import win32com.client
+from ollama import Client
+import threading
+import time
+
+client = Client()
+speaker = win32com.client.Dispatch("SAPI.SpVoice")
+
+model_path = r"C:\Users\Eddi\PycharmProjects\PythonProject\schule\andere\dateien\model"
+model = Model(model_path)
+rec = KaldiRecognizer(model, 16000)
+audio_queue = queue.Queue()
+
+chat_history = [
+    {"role": "system", "content": "Du antwortest immer auf Deutsch. Die Person heißt Eddi. Dein Name ist Computer. Antworte kurz, klar und ehrlich."}
+]
+
+def ollama_query(prompt: str) -> str:
+    chat_history.append({"role": "user", "content": prompt})
+    r = client.chat(model="phi3:mini", messages=chat_history)
+    chat_history.append(r["message"])
+    return r["message"]["content"]
 
 
-# -----------------------------
-# TTS-PROZESS (lädt NUR pyttsx3)
-# -----------------------------
-def tts_process(tts_queue):
-    import pyttsx3
-    engine = pyttsx3.init()
+def callback(indata, frames, time_, status):
+    audio_queue.put(bytes(indata))
 
-    while True:
-        text = tts_queue.get()
-        if text is None:
-            break
-        engine.say(text)
-        engine.runAndWait()
-
-
-# -----------------------------
-# HAUPTPROGRAMM
-# -----------------------------
 def main():
-    model_path = r"C:\Users\Eddi\PycharmProjects\PythonProject\schule\andere\dateien\model"
-
-    print("Lade Modell...")
-    model = Model(model_path)
-    print("Modell geladen!")
-
-    rec = KaldiRecognizer(model, 16000)
-    audio_queue = queue.Queue()
-
-    # TTS-Prozess starten
-    tts_queue = multiprocessing.Queue()
-    tts_proc = multiprocessing.Process(target=tts_process, args=(tts_queue,), daemon=True)
-    tts_proc.start()
-
-    def speak(text):
-        tts_queue.put(text)
-
-    def callback(indata, frames, time_, status):
-        audio_queue.put(bytes(indata))
-
     hotword = "computer"
-    listening = False
-
-    print("Starte Mikrofon...")
+    active = False
+    cooldown = 0
 
     with sd.RawInputStream(
         samplerate=16000,
         blocksize=8000,
-        dtype='int16',
+        dtype="int16",
         channels=1,
         callback=callback
     ):
-        print("Sag etwas...")
+        print("Bereit")
 
         while True:
-            data = audio_queue.get()
+            try:
+                data = audio_queue.get(timeout=0.1)
+            except queue.Empty:
+                continue
 
-            if rec.AcceptWaveform(data):
-                result = json.loads(rec.Result())
-                text = result.get("text", "").lower().strip()
+            if not rec.AcceptWaveform(data):
+                continue
 
-                if not text:
-                    continue
+            result = json.loads(rec.Result())
+            text = result.get("text", "").lower().strip()
+            if not text:
+                continue
 
-                if not listening:
-                    if hotword in text:
-                        print("Hotword erkannt → Assistant aktiv")
-                        speak("Ja?")
-                        listening = True
-                    else:
-                        print("Hotword nicht erkannt:", text)
-                    continue
+            if cooldown > time.time():
+                continue
 
-                # LISTENING-MODUS (JA/NEIN)
-                if "ja" in text:
-                    print("JA erkannt → True")
-                    speak("Okay, verstanden.")
-                    listening = False
-                elif "nein" in text:
-                    print("NEIN erkannt → False")
-                    speak("Alles klar.")
-                    listening = False
-                else:
-                    print("Erkannt:", text)
-                    # speak(text)  <-- NICHT jedes Wort sprechen!
+            if not active:
+                if hotword in text:
+                    active = True
+                    cooldown = time.time() + 0.8
+                    speaker.Speak("Ja Eddi")
+                continue
+
+            if "beenden" in text:
+                active = False
+                speaker.Speak("Alles klar")
+                cooldown = time.time() + 0.8
+                continue
+            if "stop" in text:
+                active = False
+                speaker.Speak("stopt")
+                quit()
+            print(text)
+            antwort = ollama_query(text)
+            speaker.Speak(antwort)
+            cooldown = time.time() + 0.8
+
+
+
+
+
 
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support()
     main()

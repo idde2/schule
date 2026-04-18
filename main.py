@@ -438,6 +438,15 @@ def test2():
 def turnier():
     return render_template("turnier.html")
 
+@app.route("/my")
+def my():
+    return redirect("/my/de")
+@app.route("/my/de")
+def my_de():
+    return render_template("my_de.html")
+@app.route("/my/en")
+def my_en():
+    return render_template("my_en.html")
 
 
 

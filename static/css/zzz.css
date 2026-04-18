@@ -1,0 +1,192 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url('/static/images/win.png');
+    background-size: cover;
+    background-position: bottom center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    background-color: #111;
+}
+
+.taskbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 44px;
+
+}
+.taskbar button {
+    position: fixed;
+    width: 2%;
+    height: 5%;
+    opacity: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.menu {
+    position: fixed;
+    padding: 10px;
+    height: 100px;
+    width: 200px;
+    margin: 0;
+    font-size: 40px;
+    background: rgba(10,10,10,0.9) !important;
+    color: white;
+    display: none;
+    box-sizing: border-box;
+    flex-direction: column;
+    animation: fadein 2s;
+}
+
+/* Überschrift */
+.menu p {
+    margin: 0 0 12px 0;     /* Abstand nach unten */
+    font-size: 20px;
+    font-weight: bold;
+}
+
+
+/* Jeder Menüpunkt */
+.menu a {
+    display: flex;          /* Icon + Text nebeneinander */
+    align-items: center;    /* vertikal zentriert */
+    gap: 10px;              /* Abstand zwischen Icon und Text */
+    padding: 6px 4px;
+    text-decoration: none;
+    color: white;
+    width: 100%;            /* ganze Zeile */
+    box-sizing: border-box;
+}
+
+
+/* Icon */
+.menu img {
+    width: 40px;
+    height: 40px;
+}
+
+/* Hover-Effekt */
+.menu a:hover {
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+}
+
+
+
+#search {
+    position: absolute;
+    color: white;
+    top: 2px;
+    left: 61px;
+    background: none;
+    height: 54%;
+    width: 16%;
+    border-radius: 15px;
+    font-size: 16px;
+    border: none;
+    align-content: center;
+}
+
+#time {
+    position: absolute;
+    right: 17px;
+    bottom: 15px;
+    font-size: 15px;
+    color: white;
+    font-family: "Segoe UI Variable";
+}
+#date {
+    position: absolute;
+    right: 17px;
+    font-size: 15px;
+    bottom: -4px;
+    color: white;
+}
+
+
+#windows_menu {
+    bottom: 70px;
+    left: 20px;
+}
+#search_menu {
+    bottom: 90px;
+    left: 20px;
+}
+#explorer_menu {
+    top: 100px;
+    left: 200px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: white;
+    padding: 5px;
+    width: 500px;
+    height: 300px;
+
+}
+#explorer_menu.activ {
+    display: none;
+}
+
+#word_menu {
+    bottom: 70px;
+    left: 250px;
+}
+#vsc_menu {
+    bottom: 70px;
+    left: 290px;
+}
+#whatsapp_menu {
+    bottom: 70px;
+    left: 310px;
+}
+#pfeil_menu {
+    bottom: 70px;
+    left: 900px;
+}
+#lang_menu {
+    bottom: 70px;
+    left: 950px;
+}
+
+
+
+
+#windows_menu_btn {
+    bottom: 1.6%;
+    left: 1.6%;
+}
+
+#explorer_menu_btn {
+    bottom: 1.6%;
+    left: 22%;
+}
+
+#word_menu_btn {
+    bottom: 1.6%;
+    left: 25%;
+}
+
+#vsc_menu_btn {
+    bottom: 1.6%;
+    left: 28.3%;
+}
+
+#whatsapp_menu_btn {
+    bottom: 1.6%;
+    left: 31.6%;
+}
+
+#pfeil_menu_btn {
+    bottom: 1.5%;
+    left: 74.7%;
+}
+#lang_menu_btn {
+    bottom: 1.2%;
+    left: 80.2%;
+    width: 2.5%;
+}

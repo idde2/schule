@@ -86,8 +86,6 @@ def background_updater():
         cursor.execute("SELECT id, name, wert FROM daten ORDER BY id DESC")
         admin = cursor.fetchall()
 
-        cursor.close()
-        conn.close()
 
         if latest:
             id, name, wert = latest
@@ -103,7 +101,6 @@ def background_updater():
         })
 
 
-
         for t in alle_typen:
             cursor.execute(
                 "SELECT name, wert FROM daten WHERE typ = %s ORDER BY wert DESC",
@@ -116,12 +113,14 @@ def background_updater():
                 "daten": [{"name": r[0], "wert": r[1]} for r in rang]
             })
 
+        cursor.close()
+        conn.close()
 
 
 
         socketio.emit("admin_update", {
-            "daten": [{"id": r[0], "name": r[1], "wert": r[2]} for r in admin]
-        })
+                "daten": [{"id": r[0], "name": r[1], "wert": r[2]} for r in admin]
+            })
 
         socketio.sleep(1)
 
